@@ -1,3 +1,6 @@
+pub const streaming_request = @import("http/streaming_request.zig");
+pub const request_body = @import("http/request_body.zig");
+pub const public_api = @import("root.zig");
 pub const context = @import("core/context.zig");
 pub const loop = @import("core/loop.zig");
 pub const pool = @import("core/pool.zig");

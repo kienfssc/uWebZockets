@@ -1,7 +1,8 @@
 # M2: request streaming and incremental multipart
 
 Status: compatibility-preserving architecture accepted, 2026-10-26.
-M1 is complete locally; the revised common-contract implementation is next.
+M1 is complete locally; the [common contract](m2_common_contract.md) is
+implemented and verified. Admission and transport implementation remain open.
 No request-streaming capability
 is implemented or advertised by this report.
 
@@ -27,11 +28,12 @@ requirements. Bounded re-review found no remaining actionable design findings;
 root accepted the contract. External CLI review was skipped during autonomous
 implementation; later maintainer review remains separate.
 
-Implementation then proceeds through common contract/router,
-HTTP/1/TLS, HTTP/2, HTTP/3, a 100 MB transport matrix, and incremental multipart.
+The common contract is verified. Implementation continues through router
+admission, HTTP/1/TLS, HTTP/2, HTTP/3, a 100 MB transport matrix, and incremental
+multipart.
 Every behavioral slice requires failing-first regression evidence and the
-original milestone gates. No checks or runtime behavior are claimed from this
-architecture-only work.
+original milestone gates. Architecture review alone establishes no runtime
+result; the common checkpoint records its separate executed checks.
 
 
 ## Compatibility gate before integration
@@ -50,8 +52,8 @@ request surface before landing it. Aliases, anyerror, or unrelated old parse
 errors do not solve the compatibility/refusal requirements. This finding
 required a fresh architecture review, completed by the accepted revision below.
 Core inline-control, terminal, progress and capacity design remains useful.
-Actual revised-source compiler proof remains mandatory; no live streaming
-capability is advertised.
+The common checkpoint now supplies actual revised-source compiler proof;
+no live streaming capability is advertised.
 
 ## Accepted compatibility revision
 
@@ -83,9 +85,9 @@ root accepts the revision.
 proposal, corrected derivative, five source bindings and 30 checked probe
 artifacts. These prove type-level feasibility only. The original runtime-mode
 draft remains frozen and unintegrated; its Request/default-slab growth must
-not be applied to production assertions. The next checkpoint must prove the
-actual new types, unchanged buffered compiler consumers, clone failure/lifetime
-behavior and measured production layouts before transport integration.
+not be applied to production assertions. The [common checkpoint](m2_common_contract.md) now proves the actual new types,
+unchanged buffered compiler consumers, clone failure/lifetime behavior and
+measured production layouts. Transport integration remains separate.
 
 
 ## Incremental multipart contract
