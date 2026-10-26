@@ -133,12 +133,13 @@ middleware: `Cors`, `SecurityHeaders`, `Auth`, and `RateLimit`. See
 | Streaming JSON | `res.begin_json()` |
 | Chunked output | `begin_chunked`, `write_chunk`, `end_chunks` |
 | Drain-driven bodies | `res.begin_stream()` with a `StreamProducer` |
-| Files | `res.send_file()`, `App.static` |
+| Files | `res.send_file()`, `res.stream_file()` with `FileSource`, `App.static` |
 | Server-Sent Events | `res.sse()` |
 | Redirects and headers | `res.redirect`, `res.append_header`, `end_with_headers` |
 | Callback ABI endings | `end_best_effort`, `end_with_headers_best_effort` (aborts the TCP connection or HTTP/2/3 stream on failure) |
 
 Response producers follow the [backpressure and completion contract](http.md#response-producer-backpressure).
+Known-length file responses follow the [file ownership contract](http.md#bounded-file-responses).
 
 ## Asynchronous responses
 

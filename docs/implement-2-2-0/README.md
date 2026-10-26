@@ -24,6 +24,7 @@ M1 slice reports: [response transport matrix](m1_response_matrix.md) and
 [content-coding evidence](evidence/m1_e/README.md), plus the
 [100 KiB socket response proof](m1_tls_payload.md) and
 [true POST echo](m1_tls_echo.md).
+The next slice records [bounded file streaming](m1_file_streaming.md).
 
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,

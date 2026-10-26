@@ -272,6 +272,11 @@ and tail latency hold up on lossy paths.
   transfer opens a temporary nonblocking window over the (blocking) io_uring
   socket and closes it before any completion is queued; stalled bytes fall back
   to a bounded dribble that reuses the idle TLS staging buffer.
+- `src/http/file_transfer.zig` owns bounded positional file progress for
+  `Response.stream_file`. HTTP/1 TCP owns one inline transfer slot, retains
+  the descriptor through output drain, and borrows separate caller scratch.
+  TLS uses the existing bounded record writer. HTTP/2, HTTP/3, and static-route
+  integration remain separate work on the 2.2.0 feature branch.
 - `src/xdp/socket.zig` implements AF_XDP UMEM ownership rings and the TX path,
   and `src/xdp/transport.zig` exposes the bypass transport to callers that
   drive it directly. The server data path always serves through the standard

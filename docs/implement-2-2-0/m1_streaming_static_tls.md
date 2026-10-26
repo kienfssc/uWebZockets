@@ -2,11 +2,13 @@
 
 Status: in progress, 2026-10-26. M0 is complete.
 
-The latest true-echo checkpoint passes 684/684 native Debug tests and
-independent local review. The earlier immutable runtime checkpoint also passes
-canonical Nix sanitizer, target compilation, h1spec, and HTTP/3 gates.
-Current-source sanitizer/target checks, static streaming, and sidecars still
-require work.
+The true-echo checkpoint passes 684/684 native Debug tests, canonical Nix
+sanitizers, ReleaseSafe/Windows compilation, and independent local review.
+Its macOS compilation exposed an incorrect cross-platform slab expectation.
+The file-streaming slice corrects that exact-layout test and passes 694/694
+native tests plus macOS arm64 compilation. The earlier immutable runtime
+checkpoint also passes h1spec and HTTP/3 gates. Static streaming, sidecars,
+and verification of later runtime changes still require work.
 
 ## Scope
 
@@ -186,12 +188,19 @@ executions with exit 0. The [package consumer](evidence/m1_e/package.log) passes
 16/16 ReleaseSafe build steps. Current-source sanitizer results remain open.
 This slice does not connect sidecar selection to static-file responses.
 
-Still required: per-transfer bounded file lifetime and exact
-length framing for TLS/HTTP/2/HTTP/3; files larger than the existing buffer;
-validators, HEAD, ranges and If-Range; pure quality-aware Accept-Encoding;
-fresh `.gz`/`.br` sidecars with representation-specific validators and Vary;
-confinement and missing/stale-sidecar coverage; external static profile
-artifacts; dated kTLS and measured splice decisions.
+The [bounded file-streaming report](m1_file_streaming.md) records the first
+HTTP/1 plaintext/TLS slice, ownership tests, and target-layout correction.
+Its corrected final suite passes 694/694 native tests and 20/20 macOS arm64
+compilation steps, with no remaining local review findings. Sanitizer and
+Windows verification of this file slice remain open.
+
+Still required: HTTP/2/HTTP/3 file ownership and exact-length framing; static
+integration for files larger than the existing buffer; validators, HEAD,
+ranges and If-Range on streamed representations; integration of the pure
+Accept-Encoding selector; fresh `.gz`/`.br` sidecars with distinct validators
+and Vary; confinement and missing/stale-sidecar coverage; external static
+profile artifacts. The dated kTLS and conditional splice boundaries are
+recorded below and in the roadmap.
 
 ## M1-3: 100 KiB TLS echo
 

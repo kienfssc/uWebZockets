@@ -8,6 +8,24 @@ const dev_log = @import("../observability/dev_log.zig");
 const CompressionPool = @import("compression_pool.zig").Pool;
 const TcpConnection = tcp.TcpConnection;
 
+/// Opened regular file with a stable, nonaliasing worker-local read window.
+/// Success transfers the descriptor; returned errors leave it with the caller.
+pub const FileSource = struct {
+    io: std.Io,
+    file: std.Io.File,
+    buffer: []u8,
+    offset: u64,
+    length: u64,
+};
+
+/// Internal HTTP/1 body framing; ordinary producers remain chunked.
+pub const StreamFraming = enum { chunked, fixed_length };
+
+/// HTTP/3 file arming; every returned error retains caller descriptor ownership.
+pub const Http3FileBeginFn = *const fn (*anyopaque, []const u8, []const u8, FileSource) anyerror!void;
+/// HTTP/2 file arming; every returned error retains caller descriptor ownership.
+pub const Http2FileBeginFn = *const fn (*anyopaque, u32, []const u8, []const u8, FileSource) anyerror!void;
+
 /// HTTP/3 end callback: status, response fields, and body bytes.
 pub const Http3EndFn = *const fn (*anyopaque, []const u8, []const u8, []const u8) anyerror!void;
 /// HTTP/3 begin callback: status and response fields.
@@ -85,6 +103,8 @@ pub const Http3Target = struct {
     abort_fn: ?Http3AbortFn = null,
     /// Optional drain-driven producer arming; null reports unsupported.
     begin_stream_fn: ?Http3StreamBeginFn = null,
+    /// Optional owned-file arming; null refuses before emitting headers.
+    stream_file_fn: ?Http3FileBeginFn = null,
 };
 
 /// HTTP/2 stream callbacks backed by a connection-owned bounded session.
@@ -100,6 +120,8 @@ pub const Http2Target = struct {
     abort_fn: ?Http2AbortFn = null,
     /// Optional drain-driven producer arming; null reports unsupported.
     begin_stream_fn: ?Http2StreamBeginFn = null,
+    /// Optional owned-file arming; null refuses before emitting headers.
+    stream_file_fn: ?Http2FileBeginFn = null,
     /// Optional per-worker gzip pool for `Response.end_gzip`.
     compression_pool: ?*CompressionPool = null,
 };
@@ -300,6 +322,7 @@ pub const Response = struct {
     target: ConnectionTarget,
     state: ResponseState = .idle,
     close_after_end: bool = false,
+    stream_framing: StreamFraming = .chunked,
     pending_headers: [pending_header_capacity]u8 = undefined,
     pending_header_length: usize = 0,
 
@@ -469,6 +492,45 @@ pub const Response = struct {
         self.state = .ended;
     }
 
+    /// Sends an exact-length file through bounded transport-owned streaming.
+    ///
+    /// The caller response ends on success; the transport closes the file once
+    /// on completion or failure. Every returned error retains caller ownership.
+    /// The nonempty scratch and Io context must outlive the transfer, must not
+    /// alias transport storage, and must not be used recursively or concurrently.
+    pub fn stream_file(self: *Response, status: []const u8, headers: []const u8, source: FileSource) !void {
+        if (self.state != .idle) return error.ResponseAlreadyStarted;
+        const code = status_code(status) orelse return error.InvalidStatus;
+        if (!valid_headers(headers)) return error.InvalidHeaders;
+        if (status_forbids_body(code)) return error.BodyNotAllowed;
+        if (source.buffer.len == 0) return error.InvalidFileSource;
+        _ = std.math.add(u64, source.offset, source.length) catch return error.InvalidFileSource;
+
+        switch (self.target) {
+            .tcp => |conn| {
+                if (code < 300 and std.mem.eql(u8, conn.req.method, "CONNECT")) return error.BodyNotAllowed;
+                const pending = self.pending_headers[0..self.pending_header_length];
+                const close_requested = headers_have_token(pending, "Connection", "close") or
+                    headers_have_token(headers, "Connection", "close");
+                try conn.begin_buffered_file_response(status, pending, headers, source, close_requested);
+                log_http_request(conn, code);
+            },
+            .http2 => |target| {
+                const arm = target.stream_file_fn orelse return error.FileStreamingUnsupported;
+                var combined: [pending_header_capacity * 2]u8 = undefined;
+                const complete_headers = try self.combine_headers(headers, &combined);
+                try arm(target.context, target.stream_id, status, complete_headers, source);
+            },
+            .http3 => |target| {
+                const arm = target.stream_file_fn orelse return error.FileStreamingUnsupported;
+                var combined: [pending_header_capacity * 2]u8 = undefined;
+                const complete_headers = try self.combine_headers(headers, &combined);
+                try arm(target.context, status, complete_headers, source);
+            },
+        }
+        self.state = .ended;
+    }
+
     /// Starts a bounded streaming response.
     pub fn begin_chunked(
         self: *Response,
@@ -561,7 +623,10 @@ pub const Response = struct {
         if (self.state != .streaming) return error.ResponseNotStreaming;
 
         switch (self.target) {
-            .tcp => |conn| try @import("chunked.zig").send_chunk(conn, chunk),
+            .tcp => |conn| switch (self.stream_framing) {
+                .chunked => try @import("chunked.zig").send_chunk(conn, chunk),
+                .fixed_length => try tcp_file.write_data_parts(conn, &.{chunk}),
+            },
             .http3 => |target| try target.write_fn(target.context, chunk),
             .http2 => |target| try target.write_fn(target.context, target.stream_id, chunk),
         }
@@ -573,7 +638,11 @@ pub const Response = struct {
 
         switch (self.target) {
             .tcp => |conn| {
-                try @import("chunked.zig").end(conn);
+                switch (self.stream_framing) {
+                    .chunked => try @import("chunked.zig").end(conn),
+                    // Keep pipelined heads out until the known-length tail drains.
+                    .fixed_length => if (conn.write_len != 0) return error.WouldBlock,
+                }
                 if (self.close_after_end) tcp.close_after_flush(conn);
             },
             .http3 => |target| try target.finish_fn(target.context),

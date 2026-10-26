@@ -5,6 +5,9 @@ uses Semantic Versioning.
 
 ## [Unreleased]
 
+- Add bounded Content-Length file streaming for HTTP/1, including TLS, with
+  caller-provided scratch and transport-owned descriptor cleanup.
+
 - Prove bounded 100 KiB TLS/plaintext producer responses and true POST echo,
   including request-storage pinning; document the explicit intake capacity and
   dated external profile, kTLS, and splice boundaries.

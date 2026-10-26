@@ -41,6 +41,8 @@ pub const AsyncResponse = @import("http/response.zig").AsyncResponse;
 pub const StreamProducer = @import("http/response.zig").StreamProducer;
 /// Outcome of one drain-driven producer invocation.
 pub const StreamStatus = @import("http/response.zig").StreamStatus;
+/// Owned file descriptor and borrowed scratch for bounded response streaming.
+pub const FileSource = @import("http/response.zig").FileSource;
 /// Streaming JSON body writer returned by `Response.begin_json`.
 pub const JsonStream = @import("http/response.zig").JsonStream;
 /// Connection-owned state backing asynchronous response tokens.

@@ -68,7 +68,7 @@ Use the highest-level helper that fits:
 | Chunked output you drive | `begin_chunked` / `write_chunk` / `end_chunks` |
 | A body produced as the transport drains | `res.begin_stream()` |
 | Server-Sent Events | `res.sse()` |
-| A file from disk | `res.send_file()` or `App.static` |
+| A file from disk | `res.send_file()`, `res.stream_file()`, or `App.static` |
 | Gzip from the per-worker pool | `res.end_gzip()` with `with_http_compression(true)` |
 
 `Response.end_gzip` compresses into the worker's startup-allocated scratch,
@@ -106,6 +106,28 @@ concurrent-stream capacity. It releases the failed stream once and sends its
 reset before further response HEADERS or DATA, preserving healthy siblings
 under ordinary output backpressure. Exhausting that fixed reset storage or
 encountering a fatal transport error still fails closed.
+
+#### Bounded file responses
+
+`res.stream_file(status, headers, source)` sends a known-length file through
+the HTTP/1 output path, including TLS. `uz.FileSource` supplies the open file,
+`std.Io` context, nonempty scratch slice, offset, and length. The scratch and
+Io context must remain valid until completion or cancellation. Keep the
+scratch separate from transport storage and use it only on its owning loop,
+without concurrent or recursive use. Reads are bounded positional operations;
+this API does not provide asynchronous disk I/O.
+
+On success, the caller's response is ended and the transport owns the file,
+closing it once after completion or failure. Every returned error leaves the
+file with the caller. HEAD sends the declared length and closes the accepted
+file without reading; an empty file also completes without body reads. Bodyless
+statuses and successful CONNECT responses are refused before ownership changes.
+The response uses Content-Length and raw file bytes, without chunk delimiters.
+
+HTTP/2 and HTTP/3 adapters are still being connected on this feature branch;
+their current targets return FileStreamingUnsupported before accepting a file.
+Plaintext send_file remains the kernel path. App.static integration follows
+separately. The ownership and framing decision is [ADR 0010](adr/0010-bounded-file-streaming.md).
 
 ## Routing
 

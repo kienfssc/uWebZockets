@@ -52,6 +52,8 @@ fn cluster_surface(init: std.process.Init, allocator: std.mem.Allocator) !void {
 
     const run_fn: *const fn (*Group) uz.cluster.RunError!void = &Group.run;
     _ = run_fn;
+    const file_fn: *const fn (*uz.Response, []const u8, []const u8, uz.FileSource) anyerror!void = &uz.Response.stream_file;
+    _ = file_fn;
 
     try group.enable_https_ephemeral();
     try group.listen("127.0.0.1", 0);

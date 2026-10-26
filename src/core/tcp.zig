@@ -25,6 +25,7 @@ const http_rejection = @import("../http/rejection.zig");
 const http_compression_pool = @import("../http/compression_pool.zig");
 const zero_copy = @import("zero_copy.zig");
 const tcp_file = @import("tcp_file.zig");
+const file_transfer = @import("../http/file_transfer.zig");
 const dev_log = @import("../observability/dev_log.zig");
 const metrics = @import("../observability/metrics.zig");
 const zslay = @import("zslay");
@@ -175,6 +176,7 @@ pub const TcpConnection = struct {
     stream_context: ?*anyopaque = null,
     stream_producer: ?http_response.StreamProducer = null,
     stream_close_after: bool = false,
+    buffered_file: file_transfer.FileTransfer = .{},
 
     ssl: ?*c.SSL = null,
     network_bio: ?*c.BIO = null,
@@ -1266,6 +1268,10 @@ pub const TcpConnection = struct {
     }
 
     fn finish_sync_dispatch(self: *TcpConnection, response: *Response) void {
+        if (self.buffered_file.file != null) {
+            self.dispatch_suspended = true;
+            return;
+        }
         if (response.is_complete()) {
             // A handler that ended its own streaming response leaves no
             // producer behind; clear any armed one defensively.
@@ -1307,10 +1313,18 @@ pub const TcpConnection = struct {
             return .done;
         }
 
+        const owns_file = self.buffered_file.file != null;
+        if (owns_file) {
+            self.buffered_file.chunk_limit = self.file_chunk_limit();
+            // One bounded file read must leave a completion to pull its next window.
+            self.begin_write_batch();
+        }
+        defer if (owns_file) self.end_write_batch();
         var response = Response{
             .target = .{ .tcp = self },
             .state = .streaming,
             .close_after_end = self.stream_close_after,
+            .stream_framing = if (owns_file) .fixed_length else .chunked,
         };
         const status = producer(context, &response) catch {
             close_connection(self);
@@ -1334,6 +1348,16 @@ pub const TcpConnection = struct {
         self.stream_producer = null;
         self.stream_context = null;
         self.stream_close_after = false;
+        file_transfer.close(&self.buffered_file);
+    }
+
+    fn file_chunk_limit(self: *const TcpConnection) usize {
+        const free = self.write_queue.len - self.write_len;
+        if (self.ssl == null) return free;
+        const bio = self.network_bio orelse return 0;
+        const pending: usize = @intCast(c.BIO_ctrl_pending(bio));
+        if (pending >= free or tls_record_overhead >= free - pending) return 0;
+        return @min(tls_plaintext_record_capacity, free - pending - tls_record_overhead);
     }
 
     fn async_target(self: *TcpConnection) http_response.AsyncTarget {
@@ -1687,6 +1711,7 @@ pub const TcpConnection = struct {
         if (comptime !zero_copy.kernel_send_supported) return error.ZeroCopyUnavailable;
         if (self.ssl != null) return error.ZeroCopyUnavailable;
         if (self.file_body != null) return error.FileBodyAlreadyActive;
+        if (self.buffered_file.file != null) return error.FileBodyAlreadyActive;
 
         var framing_buffer: [128]u8 = undefined;
         const framing = try http_status.format_http1_framing(&framing_buffer, status, length);
@@ -1717,6 +1742,45 @@ pub const TcpConnection = struct {
             self.dispatch_suspended = false;
             return err;
         };
+    }
+
+    /// Accepts the descriptor only after the complete known-length head is queued.
+    pub fn begin_buffered_file_response(
+        self: *TcpConnection,
+        status: []const u8,
+        pending: []const u8,
+        headers: []const u8,
+        source: http_response.FileSource,
+        close_after: bool,
+    ) !void {
+        if (self.closing or self.close_when_drained) return error.ConnectionClosed;
+        if (self.file_body != null or self.buffered_file.file != null or self.stream_producer != null) {
+            return error.FileBodyAlreadyActive;
+        }
+        if (source.length != 0 and !self.suppress_response_body and
+            (self.write_queue.len == 0 or (self.ssl != null and self.write_queue.len <= tls_record_overhead)))
+        {
+            return error.FileStreamingUnsupported;
+        }
+        var framing_buffer: [128]u8 = undefined;
+        const framing = try http_status.format_http1_framing(&framing_buffer, status, source.length);
+        self.begin_write_batch();
+        defer self.end_write_batch();
+        try tcp_file.write_data_parts(self, &.{ framing, pending, headers, "\r\n" });
+        if (source.length == 0 or self.suppress_response_body) {
+            source.file.close(source.io);
+            if (close_after) close_after_flush(self);
+            return;
+        }
+        self.buffered_file = .{
+            .io = source.io,
+            .file = source.file,
+            .buffer = source.buffer,
+            .offset = source.offset,
+            .remaining = source.length,
+        };
+        self.dispatch_suspended = true;
+        _ = self.start_stream(&self.buffered_file, file_transfer.produce, close_after);
     }
 
     /// Releases a pending response file without touching queued socket bytes.

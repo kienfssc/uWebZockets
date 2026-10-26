@@ -59,8 +59,18 @@ ZIG_GLOBAL_CACHE_DIR=/tmp/uwz-zig-cache \
 ```
 
 Formatting, conventions, release metadata, and documentation checks pass.
-Current-source sanitizer and target results remain open. Earlier checkpoint
-results are retained with their exact source identity.
+The clean 9bcdb48e067aa5d2749ed11e4be9e1ffb3b0ad51 checkpoint subsequently
+passes canonical Nix ASan/UBSan/leak checks with 684/684 tests and 22/22 steps,
+plus ReleaseSafe and Windows compilation with 20/20 steps each. Exact commands,
+source identity, output, and exit files are retained in
+[the checkpoint evidence](evidence/m1_f_echo/checkpoint_verification/SHA256SUMS).
+
+The same macOS arm64 compilation exits 1 at the strict default-slab equality
+assertion: the test incorrectly assumes every POSIX backend has the Linux
+layout. Its unmodified failing log is retained alongside the passing gates.
+The [file-streaming slice](m1_file_streaming.md) subsequently measures the
+exact macOS layout and passes its corrected strict compilation gate. These
+echo-checkpoint results do not verify later runtime changes.
 
 ## External evidence
 
