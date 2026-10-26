@@ -244,3 +244,13 @@ Open an issue describing the use case, or a pull request following
 [CONTRIBUTE.md](../CONTRIBUTE.md). The project accepts additive changes that
 preserve bounded behavior; proposals that add unbounded allocation to the hot
 path or weaken a compliance gate are declined by policy, not by preference.
+
+
+## 2026-10-26 WebTransport delivery declaration
+
+C12 activation is re-declared under the 2.2.0 plan's explicit alternative;
+reassess on 2026-11-02 or an earlier authorized maintained-fork review.
+[The M4 record](implement-2-2-0/m4_webtransport.md) retains implementation owners,
+backend/client/provenance blockers, source evidence, and full restoration gates.
+ADR 0001's design remains accepted. WT-required capabilities stay false; the
+backend's raw datagram primitive remains distinct from live listener support.

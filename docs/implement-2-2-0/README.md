@@ -15,7 +15,7 @@ results and release actions are recorded only when actually performed.
 | M1 | Response streaming, static delivery, TLS payloads | In progress | [Streaming, static, TLS](m1_streaming_static_tls.md) |
 | M2 | Request streaming and incremental multipart | ADR accepted; awaiting M1 | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
-| M4 | Live WebTransport and compliance | Awaiting M3 | Pending |
+| M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | Pending |
 | M6 | Performance, platform, GRO, and API decisions | Awaiting code and pin freeze | Pending |
 | M7 | Release metadata and final verification | Awaiting M1 through M6 | Pending |

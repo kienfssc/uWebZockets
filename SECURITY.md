@@ -60,11 +60,14 @@ process-wide watcher; deployments that already manage signals must not install
 a second one.
 
 `http3_extensions` and `webtransport` provide bounded validators and wire
-helpers. They are not connected to the live lsquic listener, which rejects
-extended CONNECT; they do not establish WebTransport, server push, or
+helpers. They are not connected to the live lsquic listener; completed CONNECT
+dispatch returns 501, while headers alone do not admit a session. They do not
+establish WebTransport, server push, or
 application-datagram support. ADR 0001 accepts implementation through the
 maintained lsquic fork, but this statement remains true until that work and its
-compliance gate land. RFC 10008 is the separate HTTP `QUERY` method supported
+compliance gate land. The [2026-10-26 delivery declaration](docs/implement-2-2-0/m4_webtransport.md)
+records restoration owners and the 2026-11-02 reassessment. RFC 10008 is the
+separate HTTP `QUERY` method supported
 by the router. Live transports reject QUERY requests without a syntactically
 valid `Content-Type` before the route handler runs.
 
