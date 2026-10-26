@@ -127,6 +127,9 @@ middleware: `Cors`, `SecurityHeaders`, `Auth`, and `RateLimit`. See
 
 ## Response
 
+Request body streaming has an accepted [design contract](adr/0008-request-body-streaming.md).
+Implementation is pending; the current request API remains buffered.
+
 | Group | API |
 | --- | --- |
 | Simple bodies | `res.text`, `res.html`, `res.bytes`, `res.json`, `res.json_buf` |

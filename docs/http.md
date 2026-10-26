@@ -253,6 +253,10 @@ Sidecar file selection is not connected to `App.static` yet.
 
 ## Request and response helpers
 
+The accepted [request-streaming design](adr/0008-request-body-streaming.md)
+defines the upcoming opt-in sink contract. Its transport implementation is
+pending; current handlers still receive buffered request bodies.
+
 Framework modules expose zero-allocation query/form parsing with SIMD slicing
 and compile-time capacities, streaming chunked JSON (`Response.begin_json`),
 drain-driven producer bodies (`Response.begin_stream`), multipart iteration,
