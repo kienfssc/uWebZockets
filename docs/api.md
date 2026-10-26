@@ -393,3 +393,9 @@ handles, `uwz_slice` views, and a versioned error mapping. The C ABI is a
 high-level server ABI: the low-level `udp`, HTTP/2, HPACK, HTTP/3-extension,
 WebTransport, and client modules are Zig-only. See
 [operations.md](operations.md#c-abi).
+
+
+The [2026-10-26 C5 decisions](implement-2-2-0/m6_optional_api_decisions.md) retain
+shared TCP credentials, opt-in TRACE without automatic reflection, and the
+current C single-endpoint surface. They define the consumer requirements and
+ownership tests needed to reopen those boundaries.

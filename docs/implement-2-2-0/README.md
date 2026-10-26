@@ -17,7 +17,7 @@ results and release actions are recorded only when actually performed.
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | Pending |
-| M6 | Performance, platform, GRO, and API decisions | Awaiting code and pin freeze | Pending |
+| M6 | Performance, platform, GRO, and API decisions | C5 decisions recorded; other work open | [Optional APIs](m6_optional_api_decisions.md) |
 | M7 | Release metadata and final verification | Awaiting M1 through M6 | Pending |
 
 M1 slice reports: [response transport matrix](m1_response_matrix.md) and

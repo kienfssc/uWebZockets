@@ -202,7 +202,7 @@ HTTP/1.1 and advances the `uwz_http_requests` counter; HTTP/3 emits one
 `http_request` record per completed request/response through the owning
 thread's sink, while the QUIC path never advances the counter registry.
 
-## Graceful shutdown
+## Shutdown
 
 Applications that should stop on SIGINT or SIGTERM arm the watcher before the
 loop starts:
@@ -218,8 +218,11 @@ try server.run();
 ```
 
 `catch_shutdown_signals` moves the application into the same `begin_shutdown`
-path as an explicit `shutdown()` call: existing connections drain, recurring
-timers stop, and the loop exits. It must be called before `run`; once shutdown
+path as an explicit `shutdown()` call: active connections close, producers and
+tokens are cancelled, completions drain, recurring timers stop, and the loop
+exits. Drain application requests externally before shutdown; pending responses
+are not automatically completed. See the [rolling-restart boundary](implement-2-2-0/m6_optional_api_decisions.md).
+It must be called before `run`; once shutdown
 has started it returns `error.ApplicationUnavailable`. A second call returns
 `error.SignalWatcherAlreadyInstalled`, because the signal disposition and
 self-pipe are process-wide and only one watcher may own them.
