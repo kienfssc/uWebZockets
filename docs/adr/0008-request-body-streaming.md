@@ -17,6 +17,18 @@ and lifecycle validation pure; transport drivers call application sinks and
 perform I/O. The full-body APIs remain the default and remain compatible.
 M1 must finish before this decision's transport implementation starts.
 
+## Compatibility implementation gate, 2026-10-26
+
+The initial shared Request/helper surface below is under revision before any
+integration. A [compiler proof](../implement-2-2-0/evidence/m2_compatibility/README.md)
+shows that adding BodyNotBuffered to an existing inferred helper error set
+breaks unchanged buffered consumers. Keep the accepted route-level ownership,
+flow-control, terminal, and capacity design, while preserving legacy helper
+source compatibility through a separately reviewed streaming-aware surface.
+Do not implement the initial helper guards as written or weaken the distinct
+refusal semantics. The revised request/middleware/clone contract must be
+accepted and pass the old consumer probes before implementation lands.
+
 ## Public contract
 
 Add ServerConfig.stream_request_bodies, default false. Enabling it reserves
