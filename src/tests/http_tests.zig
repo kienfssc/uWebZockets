@@ -3,6 +3,7 @@ const support = @import("test_support");
 const parser = support.http_parser;
 const Request = support.http_request.Request;
 const response = support.http_response;
+const stream_pattern = @import("stream_pattern.zig");
 
 const AsyncCapture = struct {
     completion_count: usize = 0,
@@ -880,6 +881,71 @@ test "http: head framing helpers pin exact bytes and overflow" {
         "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\n\r\nnot found",
         ring[0..conn.write_len],
     );
+}
+
+test "http: streaming pattern matrix drains bounded chunks exactly" {
+    for (stream_pattern.logical_sizes) |logical_size| {
+        var ring: [16 * 1024]u8 = undefined;
+        var conn = test_connection(&ring);
+        // Model an armed read so completion cannot touch an absent native socket.
+        conn.read_active = true;
+        const queue = conn.write_queue;
+        var producer = stream_pattern.Producer{ .logical_size = logical_size, .target_size = 2 * logical_size };
+        var capture = stream_pattern.ChunkedCapture{ .body = .{ .expected_size = producer.target_size } };
+        var res = response.Response{ .target = .{ .tcp = &conn } };
+        try res.begin_stream("200 OK", "", &producer, stream_pattern.Producer.produce);
+        var rounds: usize = 0;
+        while (rounds < 64) : (rounds += 1) {
+            try capture.consume(ring[0..conn.write_len]);
+            if (conn.stream_producer == null) break;
+            conn.write_len = 0;
+            conn.write_head = 0;
+            conn.pump_stream_body();
+        }
+        try std.testing.expect(rounds < 64);
+        try std.testing.expect(capture.head_seen and capture.ended);
+        try std.testing.expectEqual(producer.target_size, capture.body.offset);
+        try std.testing.expectEqual(@as(usize, 2), producer.logical_yields);
+        try std.testing.expect(producer.empty_writes >= 3);
+        if (logical_size != 1) try std.testing.expect(producer.blocked != 0);
+        try std.testing.expectEqual(queue.ptr, conn.write_queue.ptr);
+        try std.testing.expectEqual(queue.len, conn.write_queue.len);
+        const calls = producer.calls;
+        conn.pump_stream_body();
+        try std.testing.expectEqual(calls, producer.calls);
+    }
+}
+
+test "http: atomic 64 KiB chunk refusal leaves the write ring unchanged" {
+    var ring: [64 * 1024]u8 = undefined;
+    var body: [64 * 1024]u8 = undefined;
+    @memset(&body, 0xcc);
+    var conn = test_connection(&ring);
+    var res = response.Response{ .target = .{ .tcp = &conn } };
+    try res.begin_chunked("200 OK", "");
+    const length = conn.write_len;
+    try res.write_chunk("");
+    try std.testing.expectEqual(length, conn.write_len);
+    try std.testing.expectError(error.WouldBlock, res.write_chunk(&body));
+    try std.testing.expectEqual(length, conn.write_len);
+    try std.testing.expect(std.mem.endsWith(u8, ring[0..length], "\r\n\r\n"));
+}
+
+test "http: streaming rejects HEAD and bodyless statuses before production" {
+    var ring: [1024]u8 = undefined;
+    var conn = test_connection(&ring);
+    var producer = stream_pattern.Producer{ .logical_size = 1, .target_size = 2 };
+    for ([_][]const u8{ "204 No Content", "205 Reset Content", "304 Not Modified" }) |status| {
+        var res = response.Response{ .target = .{ .tcp = &conn } };
+        try std.testing.expectError(error.BodyNotAllowed, res.begin_stream(status, "", &producer, stream_pattern.Producer.produce));
+        try std.testing.expect(!res.is_started());
+    }
+    conn.suppress_response_body = true;
+    var res = response.Response{ .target = .{ .tcp = &conn } };
+    try std.testing.expectError(error.BodyNotAllowed, res.begin_stream("200 OK", "", &producer, stream_pattern.Producer.produce));
+    try std.testing.expectEqual(@as(usize, 0), producer.calls);
+    try std.testing.expectEqual(@as(usize, 0), conn.write_len);
+    try std.testing.expect(conn.stream_producer == null);
 }
 
 test "http: begin_stream resumes after write-ring backpressure" {

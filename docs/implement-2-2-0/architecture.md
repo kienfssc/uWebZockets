@@ -49,5 +49,33 @@ M6 follows code and pin freeze, and M7 follows all acceptance evidence.
 - Real TLS BIO and record helpers already exist in `src/tests/tls_tests.zig`.
   Use those for runtime proof; plaintext queue tests do not prove TLS records.
 
-No source implementation has landed at this checkpoint. Review each completed
-slice independently before integrating it into the milestone result.
+Slice A is implemented and independently reviewed at `71b835f`; its Nix
+environment repair is saved at `fa7449e`. The native Debug suite passes
+663/663 tests. Sanitizer and target checks run against the immutable saved
+commit in a separate verification worktree. Their results remain pending.
+Review each completed slice independently before integrating it into the
+milestone result.
+
+## Response matrix acceptance
+
+Slice B uses a shared, caller-owned 8 KiB producer buffer and an offset-derived
+payload validator. Each transport emits two logical chunks for each size:
+1 byte, 16 KiB, and 64 KiB. Logical boundaries force a pending return; actual
+queue pressure must also preserve the producer offset. Poison accepted input
+bytes before the next drain to expose any retained caller slice.
+
+HTTP/1 validates complete chunk framing and exactly one terminator. The TLS
+matrix uses a real BoringSSL handshake and encryption/decryption through memory
+BIOs; it does not replace slice F's literal socket proof. HTTP/2 validates DATA
+and END_STREAM after draining output, using ordinary WINDOW_UPDATE frames to
+restore the default flow-control credit. HTTP/3 validates bytes through bounded
+short writes rather than relying on a byte count alone.
+
+Each case also checks unchanged storage addresses and capacities, empty writes,
+bodyless-response refusal, and no producer callback after completion. Existing
+slice A close/reset regressions remain the once-only cleanup proof. Oversized
+atomic writes retain their existing transport errors and must consume neither
+payload nor credit. No fixed queue or flow-control window grows for this matrix.
+
+The [slice B report](m1_response_matrix.md) records the corrected 678/678
+combined native run, initial fixture failure, and independent re-review.

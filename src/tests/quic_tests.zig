@@ -11,6 +11,7 @@ const HeaderSet = stream.HeaderSet;
 const Request = support.http_request.Request;
 const Response = support.http_response.Response;
 const StreamStatus = support.http_response.StreamStatus;
+const stream_pattern = @import("stream_pattern.zig");
 
 test "quic: packet inspector parses v1 and v2 long headers" {
     const v1_initial =
@@ -439,6 +440,13 @@ const FakeStream = struct {
     shutdowns: usize = 0,
     closes: usize = 0,
     blocked: bool = false,
+    write_limit: usize = std.math.maxInt(usize),
+    write_budget: usize = std.math.maxInt(usize),
+    pattern_capture: ?*stream_pattern.Capture = null,
+    pattern_failed: bool = false,
+    write_shutdown: bool = false,
+    premature_shutdown: bool = false,
+    write_after_shutdown: bool = false,
 };
 
 /// Stand-in lsquic stream entry points receiving a `FakeStream` handle.
@@ -465,11 +473,24 @@ const FakeStreamIo = struct {
     }
 
     fn write(raw: ?*c.lsquic_stream, buffer: ?*const anyopaque, length: usize) callconv(.c) isize {
-        _ = buffer;
         const state = from(raw);
+        if (state.write_shutdown) {
+            state.write_after_shutdown = true;
+            return -1;
+        }
         if (state.blocked) return 0;
-        state.write_bytes += length;
-        return @intCast(length);
+        const accepted = @min(length, @min(state.write_limit, state.write_budget));
+        if (accepted == 0) return 0;
+        if (state.pattern_capture) |capture| {
+            const bytes: [*]const u8 = @ptrCast(buffer orelse return -1);
+            if (!capture.consume(bytes[0..accepted])) {
+                state.pattern_failed = true;
+                return -1;
+            }
+        }
+        state.write_bytes += accepted;
+        state.write_budget -= accepted;
+        return @intCast(accepted);
     }
 
     fn send_headers(
@@ -484,8 +505,14 @@ const FakeStreamIo = struct {
     }
 
     fn shutdown(raw: ?*c.lsquic_stream, how: c_int) callconv(.c) c_int {
-        _ = how;
-        from(raw).shutdowns += 1;
+        const state = from(raw);
+        state.shutdowns += 1;
+        if (how == 1 or how == 2) {
+            if (state.pattern_capture) |capture| {
+                if (capture.offset != capture.expected_size) state.premature_shutdown = true;
+            }
+            state.write_shutdown = true;
+        }
         return 0;
     }
 
@@ -525,6 +552,66 @@ fn test_quic_stream(
         .response_body_storage = body_storage,
         .response_header_storage = header_storage,
     };
+}
+
+test "quic: HTTP/3 streaming pattern matrix survives blocked and short writes" {
+    var oversized: [64 * 1024]u8 = undefined;
+    @memset(&oversized, 0xcc);
+    for (stream_pattern.logical_sizes) |logical_size| {
+        var capture = stream_pattern.Capture{ .expected_size = 2 * logical_size };
+        var fake = FakeStream{ .write_limit = 257, .pattern_capture = &capture };
+        var body_storage: [16 * 1024]u8 = undefined;
+        var header_storage: [stream.response_header_capacity]u8 = undefined;
+        var quic = test_quic_stream(&fake, &body_storage, &header_storage);
+        const original_body = quic.response_body_storage;
+        var producer = stream_pattern.Producer{ .logical_size = logical_size, .target_size = capture.expected_size };
+        var response = Response{ .target = .{ .http3 = quic.target() } };
+        try response.begin_stream("200 OK", "", &producer, stream_pattern.Producer.produce);
+        const queued = quic.response_body_length;
+        try std.testing.expectError(error.WouldBlock, response.write_chunk(&oversized));
+        try std.testing.expectEqual(queued, quic.response_body_length);
+        fake.blocked = true;
+        const initial_calls = producer.calls;
+        quic.on_write();
+        try std.testing.expectEqual(initial_calls, producer.calls);
+        try std.testing.expectEqual(@as(usize, 0), capture.offset);
+        try std.testing.expectEqual(@as(usize, 0), fake.shutdowns);
+        fake.blocked = false;
+        fake.write_budget = 257;
+        quic.on_write();
+        if (capture.expected_size > 257) {
+            try std.testing.expectEqual(@as(usize, 257), capture.offset);
+            try std.testing.expectEqual(@as(usize, 257), quic.response_body_offset);
+            try std.testing.expectEqual(initial_calls, producer.calls);
+            quic.on_write();
+            try std.testing.expectEqual(@as(usize, 257), capture.offset);
+            try std.testing.expectEqual(@as(usize, 257), quic.response_body_offset);
+            try std.testing.expectEqual(@as(usize, 0), fake.shutdowns);
+        }
+        var rounds: usize = 0;
+        const round_limit = (capture.expected_size + 256) / 257 + 16;
+        while (quic.response_phase != .done and rounds < round_limit) : (rounds += 1) {
+            fake.write_budget = 257;
+            quic.on_write();
+        }
+        try std.testing.expect(rounds < round_limit);
+        try std.testing.expect(!fake.pattern_failed);
+        try std.testing.expectEqual(capture.expected_size, capture.offset);
+        try std.testing.expectEqual(@as(usize, 2), producer.logical_yields);
+        try std.testing.expect(producer.empty_writes >= 3);
+        try std.testing.expectEqual(original_body.ptr, quic.response_body_storage.ptr);
+        try std.testing.expectEqual(original_body.len, quic.response_body_storage.len);
+        try std.testing.expectEqual(@as(usize, 1), fake.headers);
+        try std.testing.expectEqual(@as(usize, 1), fake.shutdowns);
+        try std.testing.expectEqual(@as(usize, 0), fake.closes);
+        const final_calls = producer.calls;
+        quic.on_write();
+        try std.testing.expectEqual(final_calls, producer.calls);
+        try std.testing.expectEqual(@as(usize, 1), fake.shutdowns);
+        try std.testing.expect(!fake.premature_shutdown);
+        try std.testing.expect(!fake.write_after_shutdown);
+        try std.testing.expectEqual(@as(usize, 0), fake.closes);
+    }
 }
 
 test "quic: HTTP/3 producer completes synchronously and drains on write" {
@@ -812,7 +899,9 @@ test "quic: HTTP/3 pending producer steps once per write event" {
 
 test "quic: HTTP/3 producer arming rejects started and bodyless responses" {
     const Producer = struct {
-        fn produce(_: *anyopaque, _: *Response) anyerror!StreamStatus {
+        fn produce(context: *anyopaque, _: *Response) anyerror!StreamStatus {
+            const calls: *u8 = @ptrCast(@alignCast(context));
+            calls.* += 1;
             return .pending;
         }
     };
@@ -842,16 +931,18 @@ test "quic: HTTP/3 producer arming rejects started and bodyless responses" {
     );
     try std.testing.expect(head_stream.stream_producer == null);
 
-    var empty_fake = FakeStream{};
-    var empty_body: [64]u8 = undefined;
-    var empty_headers: [stream.response_header_capacity]u8 = undefined;
-    var empty_stream = test_quic_stream(&empty_fake, &empty_body, &empty_headers);
-    var empty_response = Response{ .target = .{ .http3 = empty_stream.target() } };
-    try std.testing.expectError(
-        error.BodyNotAllowed,
-        empty_response.begin_stream("204 No Content", "", &marker, Producer.produce),
-    );
-    try std.testing.expect(empty_stream.stream_producer == null);
+    for ([_][]const u8{ "204 No Content", "205 Reset Content", "304 Not Modified" }) |status| {
+        var empty_fake = FakeStream{};
+        var empty_body: [64]u8 = undefined;
+        var empty_headers: [stream.response_header_capacity]u8 = undefined;
+        var empty_stream = test_quic_stream(&empty_fake, &empty_body, &empty_headers);
+        var empty_response = Response{ .target = .{ .http3 = empty_stream.target() } };
+        try std.testing.expectError(error.BodyNotAllowed, empty_response.begin_stream(status, "", &marker, Producer.produce));
+        try std.testing.expect(empty_stream.stream_producer == null);
+        try std.testing.expectEqual(@as(usize, 0), empty_fake.headers);
+        try std.testing.expectEqual(@as(usize, 0), empty_fake.write_bytes);
+    }
+    try std.testing.expectEqual(@as(u8, 1), marker);
 }
 
 test "quic: HTTP/3 application end_chunks disarms a pending producer" {

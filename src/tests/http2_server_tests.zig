@@ -6,6 +6,7 @@ const hpack = support.http2_hpack;
 const Request = support.http_request.Request;
 const Response = support.http_response.Response;
 const radix = support.radix;
+const stream_pattern = @import("stream_pattern.zig");
 
 const TestSession = http2_server.server_session(4);
 const SingleStreamSession = http2_server.server_session(1);
@@ -414,6 +415,7 @@ const DataFrames = struct {
     bytes_length: usize = 0,
     end_stream_count: usize = 0,
     final_end_stream: bool = false,
+    empty_count: usize = 0,
 };
 
 fn collect_data_frames(
@@ -438,6 +440,7 @@ fn collect_data_frames(
             @memcpy(bytes[result.bytes_length .. result.bytes_length + payload.len], payload);
             result.bytes_length += payload.len;
             result.count += 1;
+            if (header.payload_length == 0) result.empty_count += 1;
             result.final_end_stream = header.flags & 0x1 != 0;
             if (result.final_end_stream) result.end_stream_count += 1;
         }
@@ -2723,6 +2726,97 @@ fn prime_stream_connection(
     // Routing entry for later WINDOW_UPDATE delivery; the priming above keeps
     // the harness conventions of the existing producer tests.
     conn.protocol_state = .http2;
+}
+
+test "http2: streaming pattern matrix replenishes only consumed window credit" {
+    var oversized: [64 * 1024]u8 = undefined;
+    @memset(&oversized, 0xcc);
+    for (stream_pattern.logical_sizes) |logical_size| {
+        var bundle = radix.DefaultBundle{};
+        var router = try radix.Router.init(bundle.storage());
+        var producer = stream_pattern.Producer{ .logical_size = logical_size, .target_size = 2 * logical_size };
+        try router.route_context(.get, "/stream", &producer, stream_pattern.Producer.handle);
+        var ring: [16 * 1024]u8 = undefined;
+        var conn = producer_connection(&ring, &router);
+        var h2_bundle = support.tcp.Http2Session.Bundle(support.tcp.Http2Session.default_capacities){};
+        conn.h2 = try support.tcp.Http2Session.init(h2_bundle.storage());
+        const queue = conn.write_queue;
+        const body_storage = conn.h2.response_body_storage;
+        var input: [128]u8 = undefined;
+        try prime_stream_connection(&conn, &input);
+        try std.testing.expectEqual(@as(?anyerror, null), producer.begin_error);
+        const index = conn.h2.connection.streams.find(1).?;
+        const connection_credit = conn.h2.connection.connection_send_window;
+        const stream_credit = conn.h2.connection.streams.send_windows[index];
+        const queued = conn.write_len;
+        const produced = producer.offset;
+        try std.testing.expectError(error.ResponseDataTooLarge, conn.h2.write_response_data(1, &oversized, conn.http2_callbacks()));
+        try std.testing.expectEqual(queued, conn.write_len);
+        try std.testing.expectEqual(produced, producer.offset);
+        try std.testing.expectEqual(connection_credit, conn.h2.connection.connection_send_window);
+        try std.testing.expectEqual(stream_credit, conn.h2.connection.streams.send_windows[index]);
+
+        var capture = stream_pattern.Capture{ .expected_size = producer.target_size };
+        var terminal_count: usize = 0;
+        var empty_count: usize = 0;
+        var rounds: usize = 0;
+        while (rounds < 128) : (rounds += 1) {
+            var body: [16 * 1024]u8 = undefined;
+            const frames = try collect_data_frames(ring[0..conn.write_len], 1, &body);
+            try std.testing.expect(capture.consume(body[0..frames.bytes_length]));
+            terminal_count += frames.end_stream_count;
+            empty_count += frames.empty_count;
+            if (terminal_count != 0) break;
+            conn.write_len = 0;
+            conn.write_head = 0;
+            try conn.h2.flush_pending(conn.http2_callbacks());
+            if (frames.bytes_length != 0) {
+                var update: [26]u8 = undefined;
+                var length: usize = 0;
+                try append_window_update(&update, &length, 0, @intCast(frames.bytes_length));
+                if (conn.h2.connection.streams.find(1) != null) {
+                    try append_window_update(&update, &length, 1, @intCast(frames.bytes_length));
+                }
+                conn.route_decrypted_data(update[0..length]);
+            } else conn.pump_http2_streams();
+            try std.testing.expect(conn.h2.connection.connection_send_window <= http2.default_window_size);
+        }
+        try std.testing.expect(rounds < 128);
+        try std.testing.expectEqual(capture.expected_size, capture.offset);
+        try std.testing.expectEqual(@as(usize, 1), terminal_count);
+        try std.testing.expectEqual(@as(usize, 1), empty_count);
+        try std.testing.expectEqual(@as(usize, 2), producer.logical_yields);
+        try std.testing.expect(producer.empty_writes >= 3);
+        try std.testing.expect(conn.h2.connection.streams.find(1) == null);
+        try std.testing.expect(conn.h2_stream_producers[0] == null);
+        try std.testing.expectEqual(queue.ptr, conn.write_queue.ptr);
+        try std.testing.expectEqual(queue.len, conn.write_queue.len);
+        try std.testing.expectEqual(body_storage.ptr, conn.h2.response_body_storage.ptr);
+        try std.testing.expectEqual(body_storage.len, conn.h2.response_body_storage.len);
+        const calls = producer.calls;
+        conn.pump_http2_streams();
+        try std.testing.expectEqual(calls, producer.calls);
+    }
+}
+
+test "http2 server: streaming rejects HEAD and bodyless statuses without output" {
+    var fixture: SessionFixture = .{};
+    try fixture.init();
+    var session = fixture.session;
+    var state = FlowState{};
+    try prime_flow_streams(&session, &state, &.{1});
+    for ([_][]const u8{ "204 No Content", "205 Reset Content", "304 Not Modified" }) |status| {
+        try std.testing.expectError(error.BodyNotAllowed, session.begin_response(1, status, "", state.callbacks()));
+    }
+    const headers = [_]u8{ 0x02, 0x04, 'H', 'E', 'A', 'D', 0x86, 0x84 };
+    var input: [32]u8 = undefined;
+    var length: usize = 0;
+    try append_frame(&input, &length, .headers, 0x5, 3, &headers);
+    try session.receive(input[0..length], state.callbacks());
+    try std.testing.expectError(error.BodyNotAllowed, session.begin_response(3, "200 OK", "", state.callbacks()));
+    try std.testing.expectEqual(@as(usize, 0), state.output_length);
+    try std.testing.expect(session.connection.streams.find(1) != null);
+    try std.testing.expect(session.connection.streams.find(3) != null);
 }
 
 test "http2: producer completes across flow-control window updates" {

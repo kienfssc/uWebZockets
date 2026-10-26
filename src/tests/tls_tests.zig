@@ -6,6 +6,7 @@ const tls = support.tls;
 const http2 = support.http2;
 const tcp = support.tcp;
 const net = std.Io.net;
+const stream_pattern = @import("stream_pattern.zig");
 
 test "tls: client-auth modes disable early data" {
     try std.testing.expect(tls.early_data_enabled(.none));
@@ -412,6 +413,99 @@ fn drive_handshake_pair(pair: MemoryPair) !HandshakePairOutcome {
         }
     }
     return outcome;
+}
+
+test "tls: HTTP1 streaming pattern matrix encrypts bounded chunks through memory BIOs" {
+    var server_context = try tls.TlsContext.init_ephemeral(.{});
+    defer server_context.deinit();
+    const client_context = c.SSL_CTX_new(c.TLS_method()) orelse return error.ClientContextCreationFailed;
+    defer c.SSL_CTX_free(client_context);
+    // The fixture exercises records against an ephemeral, self-signed peer.
+    c.SSL_CTX_set_verify(client_context, c.SSL_VERIFY_NONE, null);
+    var oversized: [64 * 1024]u8 = undefined;
+    @memset(&oversized, 0xcc);
+
+    for (stream_pattern.logical_sizes) |logical_size| {
+        const pair = try create_memory_pair(server_context.ctx, client_context);
+        defer free_memory_pair(pair);
+        if (c.SSL_set_alpn_protos(pair.client.ssl, "\x08http/1.1", 9) != 0) {
+            return error.ClientAlpnConfigurationFailed;
+        }
+        const outcome = try drive_handshake_pair(pair);
+        try std.testing.expectEqual(HandshakeOutcome.complete, outcome.server);
+        try std.testing.expectEqual(HandshakeOutcome.complete, outcome.client);
+        try std.testing.expectEqual(tls.ApplicationProtocol.http1, tls.negotiated_protocol(pair.server.ssl));
+        var ring: [16 * 1024]u8 = undefined;
+        var conn = tcp.TcpConnection{
+            .socket = undefined,
+            .io = std.testing.io,
+            .write_queue = &ring,
+            .is_writing = true,
+            // Model an armed read; the MemoryPair has no native socket.
+            .read_active = true,
+            .ssl = pair.server.ssl,
+            .network_bio = pair.server.outgoing,
+            .is_tls_handshake_done = true,
+        };
+        // The MemoryPair owns these borrowed handles and frees each BIO once.
+        defer {
+            conn.ssl = null;
+            conn.network_bio = null;
+        }
+        const queue = conn.write_queue;
+        var producer = stream_pattern.Producer{ .logical_size = logical_size, .target_size = 2 * logical_size };
+        var capture = stream_pattern.ChunkedCapture{ .body = .{ .expected_size = producer.target_size } };
+        var response = support.http_response.Response{ .target = .{ .tcp = &conn } };
+        try response.begin_stream("200 OK", "", &producer, stream_pattern.Producer.produce);
+        const queued = conn.write_len;
+        const pending = c.BIO_ctrl_pending(pair.server.outgoing);
+        try std.testing.expectError(error.WouldBlock, response.write_chunk(&oversized));
+        try std.testing.expectEqual(queued, conn.write_len);
+        try std.testing.expectEqual(pending, c.BIO_ctrl_pending(pair.server.outgoing));
+        var rounds: usize = 0;
+        while (rounds < 64) : (rounds += 1) {
+            try capture_tls_pattern(pair.client, &conn, &capture);
+            if (conn.stream_producer == null) break;
+            conn.write_len = 0;
+            conn.write_head = 0;
+            conn.pump_stream_body();
+        }
+        try std.testing.expect(rounds < 64);
+        try std.testing.expect(capture.head_seen and capture.ended);
+        try std.testing.expectEqual(producer.target_size, capture.body.offset);
+        try std.testing.expectEqual(@as(usize, 2), producer.logical_yields);
+        try std.testing.expect(producer.empty_writes >= 3);
+        if (logical_size != 1) try std.testing.expect(producer.blocked != 0);
+        try std.testing.expectEqual(queue.ptr, conn.write_queue.ptr);
+        try std.testing.expectEqual(queue.len, conn.write_queue.len);
+        const calls = producer.calls;
+        conn.pump_stream_body();
+        try std.testing.expectEqual(calls, producer.calls);
+    }
+}
+
+/// Decrypts one complete queue drain before validating its HTTP/1 chunk frames.
+fn capture_tls_pattern(client: MemorySsl, conn: *tcp.TcpConnection, capture: *stream_pattern.ChunkedCapture) !void {
+    const ciphertext = conn.write_queue[0..conn.write_len];
+    const encrypted_length: c_int = @intCast(ciphertext.len);
+    if (c.BIO_write(client.incoming, ciphertext.ptr, encrypted_length) != encrypted_length) {
+        return error.PatternBioWriteFailed;
+    }
+    var plaintext: [16 * 1024]u8 = undefined;
+    var length: usize = 0;
+    var rounds: usize = 0;
+    while (rounds < 64) : (rounds += 1) {
+        if (length == plaintext.len) return error.PatternPlaintextCapacity;
+        const read = c.SSL_read(client.ssl, plaintext[length..].ptr, @intCast(plaintext.len - length));
+        if (read > 0) {
+            length += @intCast(read);
+            continue;
+        }
+        if (c.SSL_get_error(client.ssl, read) != c.SSL_ERROR_WANT_READ) return error.PatternTlsReadFailed;
+        break;
+    }
+    if (rounds == 64) return error.PatternTlsReadLimit;
+    try capture.consume(plaintext[0..length]);
 }
 
 fn transfer_pending_bytes(source: *c.BIO, destination: *c.BIO) !void {
