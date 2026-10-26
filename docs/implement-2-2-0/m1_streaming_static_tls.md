@@ -2,11 +2,10 @@
 
 Status: in progress, 2026-10-26. M0 is complete.
 
-The reviewed producer-completion slice passed 663/663 native Debug tests. The
-combined response matrix and negotiation checkpoint now passes 678/678 tests
-and independent local review. Sanitizer, ReleaseSafe, cross-target, literal TLS
-socket saturation, and the remaining M1 features still require verification or
-work.
+The latest socket-response checkpoint passes 681/681 native Debug tests and
+independent local review. The earlier immutable runtime checkpoint also passes
+canonical Nix sanitizer and h1spec gates. Current-source sanitizer/target checks,
+true incoming-body echo, static streaming, and sidecars still require work.
 
 ## Scope
 
@@ -146,7 +145,11 @@ other node, nested relationship, commit, hash, timestamp, and revision count.
 All four zon views remain unchanged. Independent build/vendor review found
 no issues, and [frozen-lock shell evaluation](evidence/environment/nix_shell_evaluation.log)
 passed. Actual shell construction, `zig version`, and sanitizer execution
-still require their runtime results. The library remains on Zig 0.16.0;
+were subsequently verified at the immutable checkpoint; its
+[retained results](evidence/m1_a/frozen_verification/README.md) pass 663/663
+sanitizer tests, 47/47 native ReleaseSafe default build steps, and 33/33 h1spec
+tests. Later-source sanitizer and target results remain open. The library
+remains on Zig 0.16.0;
 Zig 0.17.0 was already used only to build the existing generator tool.
 
 ### Remaining M1-1 acceptance
@@ -176,7 +179,8 @@ focused suite passes 8/8 tests. The exact commands and raw results are under
 coverage now exercise availability and the invariant that later bytes cannot
 erase an explicit refusal. The combined native suite passes 678/678, LLVM smoke
 passes all 11 build steps, and the requested 100K fuzz run completes 103,733
-executions with exit 0. Package-consumer and sanitizer results remain open.
+executions with exit 0. The [package consumer](evidence/m1_e/package.log) passes
+16/16 ReleaseSafe build steps. Current-source sanitizer results remain open.
 This slice does not connect sidecar selection to static-file responses.
 
 Still required: per-transfer bounded file lifetime and exact
@@ -188,10 +192,15 @@ artifacts; dated kTLS and measured splice decisions.
 
 ## M1-3: 100 KiB TLS echo
 
-Not implemented yet. Required: real TLS loopback with exact bytes, at least
-seven application-data records, unchanged record/queue limits, plaintext
-control, caller-buffer and allocation audit, and external `8gbit` evidence or
-the plan's explicit dated re-declaration.
+[The socket-response report](m1_tls_payload.md) records exact 100 KiB TLS and
+plaintext delivery, at least seven decrypted application records, unchanged
+record/queue limits, real pressure, source poisoning, and scoped allocator
+proof. Its final 681/681 native suite and independent re-review pass.
+
+True incoming-body echo and the exact external adapter change still require
+their own proof. Official `8gbit` evidence or the plan's dated re-declaration
+also remains open. The generated GET response test preserves default request
+limits and establishes the large-response transport behavior.
 
 M1 remains open until every original checklist item has implementation and
 matching evidence, or the original plan expressly permits a documented

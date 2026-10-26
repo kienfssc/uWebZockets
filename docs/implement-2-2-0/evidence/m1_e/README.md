@@ -37,6 +37,9 @@ ZIG_GLOBAL_CACHE_DIR=/tmp/uwz-zig-cache \
 ```
 
 Formatting, conventions, release metadata, documentation links, online
-dependency provenance, and graph refresh pass. Package-consumer and sanitizer
-results remain open; the live canonical sanitizer uses the earlier immutable
+dependency provenance, and graph refresh pass. The
+[package consumer](package.log) exits 0 with 16/16 ReleaseSafe steps using
+`zig build check -Doptimize=ReleaseSafe -j2 --summary all` from
+`tests/package_consumer`. Sanitizer results for this source remain open; the
+canonical sanitizer uses the earlier immutable
 `fa7449e` worktree and does not yet cover this negotiation change.
