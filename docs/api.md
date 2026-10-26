@@ -138,6 +138,8 @@ middleware: `Cors`, `SecurityHeaders`, `Auth`, and `RateLimit`. See
 | Redirects and headers | `res.redirect`, `res.append_header`, `end_with_headers` |
 | Callback ABI endings | `end_best_effort`, `end_with_headers_best_effort` (aborts the TCP connection or HTTP/2/3 stream on failure) |
 
+Response producers follow the [backpressure and completion contract](http.md#response-producer-backpressure).
+
 ## Asynchronous responses
 
 An async token is copyable, generation-checked, and completes exactly once:

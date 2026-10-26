@@ -675,6 +675,108 @@ test "quic: HTTP/3 producer fault after the head closes the stream" {
     try std.testing.expectEqual(@as(usize, 0), fake.shutdowns);
 }
 
+test "quic: HTTP/3 producer completion without end_chunks queues a 500" {
+    const Producer = struct {
+        fn produce(_: *anyopaque, response: *Response) anyerror!StreamStatus {
+            try response.write_chunk("partial");
+            return .done;
+        }
+
+        fn release(context: *anyopaque, _: *TestQuicStream) void {
+            const count: *usize = @ptrCast(@alignCast(context));
+            count.* += 1;
+        }
+    };
+
+    var fake = FakeStream{};
+    var body_storage: [64]u8 = undefined;
+    var header_storage: [stream.response_header_capacity]u8 = undefined;
+    var quic = test_quic_stream(&fake, &body_storage, &header_storage);
+    var releases: usize = 0;
+    quic.owner = &releases;
+    quic.release_fn = Producer.release;
+    var marker: u8 = 0;
+    var response = Response{ .target = .{ .http3 = quic.target() } };
+    try response.begin_stream("200 OK", "", &marker, Producer.produce);
+
+    try std.testing.expectEqual(@as(u16, 500), quic.response_status_code);
+    try std.testing.expect(quic.stream_producer == null);
+    try std.testing.expect(quic.stream_producer_context == null);
+    quic.on_write();
+    quic.on_write();
+    try std.testing.expect(quic.response_phase == .done);
+    try std.testing.expectEqual(@as(usize, 1), fake.headers);
+    try std.testing.expectEqual(@as(usize, 0), fake.write_bytes);
+    try std.testing.expectEqual(@as(usize, 1), fake.shutdowns);
+    try std.testing.expectEqual(@as(usize, 0), fake.closes);
+    quic.on_close();
+    quic.on_close();
+    try std.testing.expectEqual(@as(usize, 1), releases);
+}
+
+test "quic: HTTP/3 premature producer completion after the head closes once" {
+    const Producer = struct {
+        calls: usize = 0,
+
+        fn produce(context: *anyopaque, response: *Response) anyerror!StreamStatus {
+            const self: *@This() = @ptrCast(@alignCast(context));
+            self.calls += 1;
+            if (self.calls != 1) return .done;
+            try response.write_chunk("partial");
+            return .pending;
+        }
+    };
+
+    var fake = FakeStream{};
+    var body_storage: [64]u8 = undefined;
+    var header_storage: [stream.response_header_capacity]u8 = undefined;
+    var quic = test_quic_stream(&fake, &body_storage, &header_storage);
+    var producer = Producer{};
+    var response = Response{ .target = .{ .http3 = quic.target() } };
+    try response.begin_stream("200 OK", "", &producer, Producer.produce);
+
+    quic.on_write();
+    quic.on_write();
+    try std.testing.expectEqual(@as(usize, 1), fake.closes);
+    try std.testing.expectEqual(@as(usize, 0), fake.shutdowns);
+    try std.testing.expectEqual(@as(usize, 2), producer.calls);
+    try std.testing.expect(quic.response_phase == .done);
+    try std.testing.expect(quic.stream_producer == null);
+    try std.testing.expect(quic.stream_producer_context == null);
+}
+
+test "quic: HTTP/3 end_chunks disarms a producer returning pending" {
+    const Producer = struct {
+        calls: usize = 0,
+
+        fn produce(context: *anyopaque, response: *Response) anyerror!StreamStatus {
+            const self: *@This() = @ptrCast(@alignCast(context));
+            self.calls += 1;
+            try response.write_chunk("complete");
+            try response.end_chunks();
+            return .pending;
+        }
+    };
+
+    var fake = FakeStream{};
+    var body_storage: [64]u8 = undefined;
+    var header_storage: [stream.response_header_capacity]u8 = undefined;
+    var quic = test_quic_stream(&fake, &body_storage, &header_storage);
+    var producer = Producer{};
+    var response = Response{ .target = .{ .http3 = quic.target() } };
+    try response.begin_stream("200 OK", "", &producer, Producer.produce);
+
+    try std.testing.expect(response.is_complete());
+    try std.testing.expect(quic.stream_producer == null);
+    try std.testing.expect(quic.stream_producer_context == null);
+    quic.on_write();
+    quic.on_write();
+    try std.testing.expectEqual(@as(usize, 1), producer.calls);
+    try std.testing.expectEqual(@as(usize, "complete".len), fake.write_bytes);
+    try std.testing.expectEqual(@as(usize, 1), fake.shutdowns);
+    try std.testing.expectEqual(@as(usize, 0), fake.closes);
+}
+
 test "quic: HTTP/3 pending producer steps once per write event" {
     const Producer = struct {
         steps: usize = 0,

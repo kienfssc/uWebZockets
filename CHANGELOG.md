@@ -3,6 +3,19 @@
 All notable changes to µWebZockets are documented in this file. The project
 uses Semantic Versioning.
 
+## [Unreleased]
+
+### Fixed
+
+- Response producers fail closed when they return `.done` without successfully
+  calling `end_chunks`. HTTP/2 resets only the affected stream; HTTP/3 returns
+  500 before headers or closes an already-started stream. A producer that
+  finishes the response is disarmed even if it subsequently returns `.pending`.
+- HTTP/2 retains reset frames during output backpressure, so a failed producer
+  does not close healthy sibling streams when the write queue is full. Reset
+  storage is bounded by the configured stream limit and adds 80 bytes per
+  connection at the default eight-stream capacity.
+
 ## [2.1.6] - 2026-10-26
 
 Patch release that stops the timer scheduler from spinning on kqueue, pins the

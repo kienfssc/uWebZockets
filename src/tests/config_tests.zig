@@ -231,23 +231,12 @@ test "config: default slab carries the router region at the end" {
     const router_bytes = try config.router_storage_bytes();
     try std.testing.expectEqual(@as(usize, 874_112), router_bytes);
 
-    const total = try config.slab_bytes();
-    // The connection slab dominates the default footprint. The inline route
-    // capture accessors added a pointer pair and a count to `TcpConnection`,
-    // the per-stream HTTP/2 session storage moved out of `TcpConnection` into
-    // a carved per-connection region, the per-stream HTTP/2 response status
-    // array added sixteen bytes per connection, the runtime-selectable
-    // libxev wrappers added the epoll variants to every per-connection
-    // completion, and the static-route index added its 512 hash slots, 512
-    // node slots, and 256 parent links (5_632 bytes) to the router region,
-    // moving 681_711_744 to this total. TRACE adds one 8-byte handler slot per
-    // node, moving 681_717_376 to 681_727_616. The HTTP gzip pool pointer adds
-    // eight bytes per connection, moving the total to 681_735_808. The
-    // incremental parser scan cursor adds two usize fields per connection.
-    // The timing wheel adds one idle node and nine parking slots per
-    // connection, moving the total to 683_382_400.
+    const total = comptime config.slab_bytes() catch @compileError("default slab layout overflow");
+    // Eight reset intents and two FIFO indices add 80 bytes per connection,
+    // or 81_920 bytes across the default 1_024 connections.
     // Windows completions and handles are wider than the POSIX layout.
-    const expected_total: usize = if (builtin.os.tag == .windows) 683_808_384 else 683_382_400;
+    const expected_total: usize = if (builtin.os.tag == .windows) 683_890_304 else 683_464_320;
+    comptime std.debug.assert(total == expected_total);
     try std.testing.expectEqual(expected_total, total);
     // The default route-param extras stride is zero: the region extends the
     // slab by exactly one router region's bytes.

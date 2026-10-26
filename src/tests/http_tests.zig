@@ -954,6 +954,90 @@ test "http: begin_stream completes synchronously when the body fits" {
     try std.testing.expect(std.mem.endsWith(u8, written, "0\r\n\r\n"));
 }
 
+test "http: producer completion without end_chunks closes once" {
+    const Producer = struct {
+        pending_first: bool,
+        calls: usize = 0,
+
+        fn produce(context: *anyopaque, stream: *response.Response) anyerror!response.StreamStatus {
+            const self: *@This() = @ptrCast(@alignCast(context));
+            self.calls += 1;
+            if (self.calls == 1) {
+                try stream.write_chunk("partial");
+                if (self.pending_first) return .pending;
+            }
+            return .done;
+        }
+    };
+
+    for ([_]bool{ false, true }) |pending_first| {
+        var event_loop = try support.loop.init();
+        defer support.loop.deinit(&event_loop);
+        const address = try std.Io.net.IpAddress.parse("127.0.0.1", 0);
+        var ring: [1024]u8 = undefined;
+        var conn = support.tcp.TcpConnection{
+            .socket = try @import("xev").TCP.init(address),
+            .io = std.testing.io,
+            .write_queue = &ring,
+        };
+        conn.loop = event_loop.get_xev_loop();
+        defer {
+            support.tcp.close_connection(&conn);
+            event_loop.xev_loop.run(.until_done) catch @panic("stream close did not drain");
+        }
+        // Keep the partial head in the ring while testing producer teardown.
+        conn.begin_write_batch();
+        var res = response.Response{ .target = .{ .tcp = &conn } };
+        var producer = Producer{ .pending_first = pending_first };
+        try res.begin_stream("200 OK", "", &producer, Producer.produce);
+        if (pending_first) {
+            try std.testing.expect(conn.stream_producer != null);
+            conn.write_len = 0;
+            conn.write_head = 0;
+            conn.pump_stream_body();
+        }
+
+        try std.testing.expect(conn.closing);
+        try std.testing.expect(conn.stream_producer == null);
+        try std.testing.expect(conn.stream_context == null);
+        const calls = producer.calls;
+        conn.pump_stream_body();
+        support.tcp.close_connection(&conn);
+        try event_loop.xev_loop.run(.until_done);
+        try std.testing.expect(conn.close_complete);
+        try std.testing.expectEqual(calls, producer.calls);
+    }
+}
+
+test "http: end_chunks disarms a producer returning pending" {
+    const Producer = struct {
+        calls: usize = 0,
+
+        fn produce(context: *anyopaque, stream: *response.Response) anyerror!response.StreamStatus {
+            const self: *@This() = @ptrCast(@alignCast(context));
+            self.calls += 1;
+            try stream.write_chunk("complete");
+            try stream.end_chunks();
+            return .pending;
+        }
+    };
+
+    var ring: [1024]u8 = undefined;
+    var conn = test_connection(&ring);
+    var res = response.Response{ .target = .{ .tcp = &conn } };
+    var producer = Producer{};
+    try res.begin_stream("200 OK", "", &producer, Producer.produce);
+
+    try std.testing.expect(res.is_complete());
+    try std.testing.expect(conn.stream_producer == null);
+    try std.testing.expect(conn.stream_context == null);
+    const length = conn.write_len;
+    conn.pump_stream_body();
+    try std.testing.expectEqual(@as(usize, 1), producer.calls);
+    try std.testing.expectEqual(length, conn.write_len);
+    try std.testing.expect(std.mem.endsWith(u8, ring[0..length], "0\r\n\r\n"));
+}
+
 test "http: begin_stream fails closed on transports without producer support" {
     var context: u8 = 0;
 

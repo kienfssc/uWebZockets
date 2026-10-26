@@ -71,16 +71,41 @@ Use the highest-level helper that fits:
 | A file from disk | `res.send_file()` or `App.static` |
 | Gzip from the per-worker pool | `res.end_gzip()` with `with_http_compression(true)` |
 
-`Response.begin_stream()` pulls chunks from an application callback only when
-the write queue and flow-control windows have room, so response size never
-depends on the queue size.
-
 `Response.end_gzip` compresses into the worker's startup-allocated scratch,
 emits `Content-Encoding: gzip` and `Vary: Accept-Encoding`, and never allocates
 on the request path. The input must fit `ServerConfig.max_body_size`; the
 compressed result must also fit the transport's response capacity (HTTP/2 uses
 its configured response stride). Compression is opt-in; do not gzip responses
 that mix secrets with attacker-controlled input.
+
+#### Response producer backpressure
+
+`Response.begin_stream()` invokes its producer immediately, then resumes it
+when output drains or flow-control credit returns. A producer writes bounded
+chunks and returns `.pending` when `write_chunk` reports `error.WouldBlock`.
+Advance the body offset only after a write succeeds, and retry refused bytes
+on the next invocation. A successful write copies the bytes into transport
+storage; the producer context must remain valid while the callback is armed.
+
+Response size can exceed the write queue, but each individual write must fit
+the transport's payload bound. Split large logical chunks into bounded writes;
+framing and TLS records also occupy queue space. An atomic 64 KiB payload does
+not fit the default 64 KiB queue once that overhead is included. A refused
+oversized chunk does not become writable merely because the queue drains.
+
+An empty `write_chunk` is a no-op. Call `end_chunks` successfully before
+returning `.done`; retry `end_chunks` after backpressure as needed. Returning
+`.done` without terminal framing uses the transport's producer-failure path.
+After `end_chunks` succeeds, the callback is disarmed even if it returns
+`.pending`. Producer errors abort the HTTP/1 connection or affected HTTP/2/3
+stream; HTTP/3 can replace an unsent response with 500. HEAD and bodyless
+statuses cannot start a response producer.
+
+HTTP/2 retains blocked stream resets in fixed storage bounded by the configured
+concurrent-stream capacity. It releases the failed stream once and sends its
+reset before further response HEADERS or DATA, preserving healthy siblings
+under ordinary output backpressure. Exhausting that fixed reset storage or
+encountering a fatal transport error still fails closed.
 
 ## Routing
 

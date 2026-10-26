@@ -880,6 +880,7 @@ pub const TcpConnection = struct {
 
     fn abort_http2_response(context: *anyopaque, stream_id: u32) void {
         const self: *TcpConnection = @ptrCast(@alignCast(context));
+        if (self.h2.connection.streams.find(stream_id) == null) return;
         self.h2.reset_stream(stream_id, .internal_error, self.http2_callbacks()) catch
             close_connection(self);
     }
@@ -951,14 +952,18 @@ pub const TcpConnection = struct {
             .close_after_end = self.h2_stream_producer_close[index],
         };
         const status = producer(producer_context, &response) catch {
-            const callbacks = self.http2_callbacks();
-            self.h2.reset_stream(stream_id, .internal_error, callbacks) catch
-                close_connection(self);
+            abort_http2_response(self, stream_id);
             self.clear_http2_producer(index);
             return .done;
         };
-        if (status == .done) self.clear_http2_producer(index);
-        return status;
+        if (response.is_complete()) {
+            self.clear_http2_producer(index);
+            return .done;
+        }
+        if (status == .pending) return .pending;
+        abort_http2_response(self, stream_id);
+        self.clear_http2_producer(index);
+        return .done;
     }
 
     /// Resumes every armed HTTP/2 producer after queued output drains.
@@ -1308,11 +1313,14 @@ pub const TcpConnection = struct {
             .close_after_end = self.stream_close_after,
         };
         const status = producer(context, &response) catch {
-            self.clear_stream();
             close_connection(self);
             return .done;
         };
-        if (status == .done) self.clear_stream();
+        if (response.is_complete()) {
+            self.clear_stream();
+            return .done;
+        }
+        if (status == .done) close_connection(self);
         return status;
     }
 

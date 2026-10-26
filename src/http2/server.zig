@@ -18,6 +18,12 @@ pub const ErrorCode = enum(u32) {
     enhance_your_calm = 0xb,
 };
 
+/// One accepted reset intent retained independently of reusable stream slots.
+const PendingReset = struct {
+    stream_id: u32,
+    code: ErrorCode,
+};
+
 /// Writes frame parts; must consume or copy every part before returning.
 pub const WriteFn = *const fn (*anyopaque, []const []const u8) anyerror!void;
 /// Delivers a session-owned request for one stream.
@@ -32,9 +38,10 @@ pub const StreamClosedFn = *const fn (*anyopaque, u32, u16) void;
 /// `write_fn` must consume or copy every part before returning because frame
 /// headers use stack storage. `error.WouldBlock` must consume no bytes so the
 /// session can retry the frame. Stream DATA retries through the pending
-/// response state, but control frames (SETTINGS/PING acknowledgements,
-/// RST_STREAM, GOAWAY) are not buffered: a `WouldBlock` while sending one
-/// closes the connection instead of growing an unbounded control queue.
+/// response state. RST_STREAM intents use a FIFO bounded by `max_streams`;
+/// exhaustion returns `PendingResetCapacityReached` before closing a new stream.
+/// Other control frames (SETTINGS/PING acknowledgements, GOAWAY) are unbuffered:
+/// a `WouldBlock` while sending one still closes the connection.
 /// `request_fn` receives a session-owned request that stays valid until the
 /// corresponding stream slot is released.
 pub const Callbacks = struct {
@@ -516,6 +523,9 @@ pub fn server_session(comptime max_streams: usize) type {
         pending_response_active: [max_streams]bool = .{false} ** max_streams,
         pending_stream_end: [max_streams]bool = .{false} ** max_streams,
         stream_write_retry_required: [max_streams]bool = .{false} ** max_streams,
+        pending_resets: [max_streams]PendingReset = undefined,
+        pending_reset_head: usize = 0,
+        pending_reset_count: usize = 0,
 
         header_block_length: usize = 0,
         header_stream_index: ?u16 = null,
@@ -616,6 +626,8 @@ pub fn server_session(comptime max_streams: usize) type {
             self.frame_target_length = 9;
             self.settings_sent = false;
             self.closed = false;
+            self.pending_reset_head = 0;
+            self.pending_reset_count = 0;
             @memset(&self.request_storage_lengths, 0);
             @memset(&self.body_lengths, 0);
             self.request_body_limit = self.body_stride;
@@ -748,6 +760,7 @@ pub fn server_session(comptime max_streams: usize) type {
 
         /// Retries every buffered response after transport capacity becomes available.
         pub fn flush_pending(self: *Self, callbacks: Callbacks) !void {
+            if (!try self.flush_pending_resets(callbacks)) return;
             for (0..max_streams) |index| {
                 if (!self.pending_response_active[index] and
                     !self.pending_stream_end[index]) continue;
@@ -1595,6 +1608,19 @@ pub fn server_session(comptime max_streams: usize) type {
         ) !void {
             // RST_STREAM on stream 0 is a connection error; refuse to emit it.
             if (stream_id == 0) return;
+            if (callbacks.max_frame_payload < 4) return error.ResetFrameTooLarge;
+            if (self.has_pending_reset(stream_id)) {
+                _ = try self.flush_pending_resets(callbacks);
+                return;
+            }
+            if (self.pending_reset_count == max_streams) {
+                _ = try self.flush_pending_resets(callbacks);
+                if (self.pending_reset_count == max_streams) return error.PendingResetCapacityReached;
+            }
+            const tail = (self.pending_reset_head + self.pending_reset_count) % max_streams;
+            self.pending_resets[tail] = .{ .stream_id = stream_id, .code = code };
+            self.pending_reset_count += 1;
+
             if (self.connection.streams.find(stream_id)) |index| {
                 self.notify_stream_closed(stream_id, index, callbacks);
                 _ = self.connection.reset_local(index);
@@ -1602,9 +1628,34 @@ pub fn server_session(comptime max_streams: usize) type {
             } else {
                 self.connection.record_local_reset(stream_id);
             }
-            var payload: [4]u8 = undefined;
-            std.mem.writeInt(u32, &payload, @intFromEnum(code), .big);
-            try self.send_frame(.rst_stream, 0, stream_id, &payload, callbacks);
+            _ = try self.flush_pending_resets(callbacks);
+        }
+
+        fn has_pending_reset(self: *const Self, stream_id: u32) bool {
+            for (0..self.pending_reset_count) |offset| {
+                const index = (self.pending_reset_head + offset) % max_streams;
+                if (self.pending_resets[index].stream_id == stream_id) return true;
+            }
+            return false;
+        }
+
+        /// A reset leaves the FIFO only after the transport accepts every byte.
+        fn flush_pending_resets(self: *Self, callbacks: Callbacks) anyerror!bool {
+            if (self.pending_reset_count != 0 and callbacks.max_frame_payload < 4) {
+                return error.ResetFrameTooLarge;
+            }
+            while (self.pending_reset_count != 0) {
+                const pending = self.pending_resets[self.pending_reset_head];
+                var payload: [4]u8 = undefined;
+                std.mem.writeInt(u32, &payload, @intFromEnum(pending.code), .big);
+                self.send_frame(.rst_stream, 0, pending.stream_id, &payload, callbacks) catch |err| {
+                    if (err == error.WouldBlock) return false;
+                    return err;
+                };
+                self.pending_reset_head = (self.pending_reset_head + 1) % max_streams;
+                self.pending_reset_count -= 1;
+            }
+            return true;
         }
 
         fn send_goaway(self: *Self, code: ErrorCode, callbacks: Callbacks) !void {
@@ -1668,7 +1719,8 @@ pub fn server_session(comptime max_streams: usize) type {
             payload: []const u8,
             callbacks: Callbacks,
         ) !void {
-            _ = self;
+            if ((frame_type == .headers or frame_type == .data) and
+                !try self.flush_pending_resets(callbacks)) return error.WouldBlock;
             var frame_header: [9]u8 = undefined;
             try (connection_module.FrameHeader{
                 .payload_length = @intCast(payload.len),

@@ -14,7 +14,7 @@ results and release actions are recorded only when actually performed.
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | In progress | [Streaming, static, TLS](m1_streaming_static_tls.md) |
 | M2 | Request streaming and incremental multipart | Awaiting M1 | Pending |
-| M3 | Dependency provenance gates and archives | Awaiting baseline | Pending |
+| M3 | Dependency provenance gates and archives | Not started | Pending |
 | M4 | Live WebTransport and compliance | Awaiting M3 | Pending |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | Pending |
 | M6 | Performance, platform, GRO, and API decisions | Awaiting code and pin freeze | Pending |
@@ -27,5 +27,8 @@ release tag, and publication.
 The user requested implementation in the original repository's local feature
 branch, with manual review later and no fork workflow. That instruction
 supersedes the plan's per-milestone PR requirement. `origin` points to
-`https://github.com/farbenbuilds/uWebZockets`; milestone evidence stays local
-on `feat/implement-2-2-0` until the maintainer reviews it.
+`https://github.com/farbenbuilds/uWebZockets`; manual review happens later.
+The user subsequently requested pushing each commit to that feature branch.
+The first original-repository push returned HTTP 403: the current Codespace
+account, `kienfssc`, has `push: false`. Local implementation continues while
+write access is corrected; no fork is a delivery fallback.

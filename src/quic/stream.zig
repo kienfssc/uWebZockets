@@ -586,19 +586,14 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
                 self.fail_stream_producer();
                 return .done;
             };
-            if (status == .done) {
-                self.clear_stream_producer();
-                // A producer that returns `.done` without end_chunks still
-                // terminates the body; finish_response arms the final drain.
-                if (self.response_phase == .streaming) {
-                    finish_response(self) catch self.close_now();
-                }
-                return .done;
-            }
             // end_chunks moved the phase out of `.streaming`; a later `.pending`
             // must not leave wantwrite armed forever.
             if (self.response_phase != .streaming) {
                 self.clear_stream_producer();
+                return .done;
+            }
+            if (status == .done) {
+                self.fail_stream_producer();
                 return .done;
             }
             return status;
