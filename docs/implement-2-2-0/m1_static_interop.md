@@ -1,7 +1,7 @@
 # M1: public static-route client matrix
 
-Status: reviewed harness and successful consumer build, 2026-10-26.
-Exact saved-revision live execution remains open.
+Status: full saved-revision live correctness gate passes, 2026-10-26.
+Broader M1 and official-profile acceptance remain separately recorded.
 
 The [public consumer](../../tests/static_interop/README.md) uses ordinary App
 startup, static mounts, listeners, signal handling, shutdown, and deinit. It
@@ -91,3 +91,27 @@ status, and encoding checks remain. Focused RED/GREEN cases retain missing,
 duplicate, mismatched, corrupt-body, and incomplete-end refusals. A fresh full
 live run must complete the large aioquic stream, healthy sibling, and reuse.
 The original failed artifact and generated results remain unchanged.
+
+
+## Final saved-revision live result
+
+The [final artifact](evidence/m1_static_live/README.md) binds the successful gate
+to `fc0587af169b1783d17f40cbdfb4bc16140e755a`. Build, client, aggregate, and
+outer statuses are zero. All four curl protocols and all 84 small checks pass;
+the aioquic connection completes its 104,857,600-byte file on stream 0, healthy
+sibling on 4, and reuse on 8 with exact bytes and END_STREAM. All five large
+client bodies share the recorded fixture hash. The observed maximum aioquic
+data event is 1440 bytes; comparisons use at most 8192-byte slices.
+
+Independent artifact review verifies the original 738-entry inventory, source
+and tool identities, qlogs, individual statuses, and every byte of all five
+decompressed body archives. All three owned servers exit zero without forced
+killing, resource teardown markers follow deinit, and temporary keys are removed.
+The archive adds portable checksums around unchanged raw records. Source/build
+Git object comparison proves the b2d2acb library matrix and fc0587a live runner
+use identical production, centralized-test, build, dependency, and flake inputs;
+only documentation and the separately reviewed Python harness changed.
+
+This closes the local large-plaintext/live-H3 and real sidecar-decoding gaps.
+Remaining broader gates and external static-profile evidence stay tracked in
+the parent M1 report. No benchmark or global-allocation claim is introduced.
