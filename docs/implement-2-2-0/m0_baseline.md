@@ -81,20 +81,22 @@ symbols; source reads still verify those details. Graph artifacts stay ignored.
 
 ## Review and integration
 
-The independent reviewer found one closure gap: M0 requires the selected next
-milestone to be recorded in the implementation PR. No other findings were
-reported. [Draft PR #1](https://github.com/kienfssc/uWebZockets/pull/1) now
-records M1 as next, with owner `kienfssc` and existing label `enhancement`.
-The initial PR head is `4e49d2697a5ade22cc95d4d3b43e125c37366d1d`.
+The independent reviewer confirmed the baseline identities and verification
+results. The only finding concerned the original plan's implementation-PR
+requirement. The user subsequently requested work in this repository's branch,
+manual review later, and no fork workflow. That explicit instruction supersedes
+the PR requirement. M1 remains the selected next milestone, recorded here.
 
-The authenticated account lacks write access to `farbenbuilds/uWebZockets`.
-Codespaces configured `origin` as `kienfssc/uWebZockets` and retained the
-original repository as `upstream`. The requested feature branch and cumulative
-draft PR therefore live in that fork. The user-requested single implementation
-branch carries every milestone's reports and review checkpoints.
+Codespaces automatically redirected `origin` to a fork during the initial
+baseline commit because its authenticated account lacked write access to the
+original remote. At the user's correction, `origin` was restored to
+`https://github.com/farbenbuilds/uWebZockets`, fork tracking was removed from
+the feature branch, and the unnecessary draft PR was closed. The earlier
+`evidence/m0/pr.json` is historical metadata, not the implementation's delivery
+target or an active review. No remote fork was deleted.
 
-Root integration confirmed the baseline scope, identities, raw gate results,
-and PR metadata. The baseline commit contains the supplied plan and reports;
+Root integration confirmed the baseline scope, identities, and raw gate results.
+The baseline commit contains the supplied plan and reports;
 source code, dependency pins, and release tags are unchanged. The missing
 `TODO.md` reference remains an explicit input discrepancy; the supplied plan
 retains its full inventory and acceptance criteria.

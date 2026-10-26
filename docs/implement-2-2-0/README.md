@@ -12,7 +12,7 @@ results and release actions are recorded only when actually performed.
 | Milestone | Scope | State | Report |
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
-| M1 | Response streaming, static delivery, TLS payloads | In progress | [Architecture](architecture.md) |
+| M1 | Response streaming, static delivery, TLS payloads | In progress | [Streaming, static, TLS](m1_streaming_static_tls.md) |
 | M2 | Request streaming and incremental multipart | Awaiting M1 | Pending |
 | M3 | Dependency provenance gates and archives | Awaiting baseline | Pending |
 | M4 | Live WebTransport and compliance | Awaiting M3 | Pending |
@@ -24,6 +24,8 @@ The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
 release tag, and publication.
 
-The cumulative [draft PR](https://github.com/kienfssc/uWebZockets/pull/1)
-targets the Codespaces-configured fork and is assigned to `kienfssc` with the
-`enhancement` label.
+The user requested implementation in the original repository's local feature
+branch, with manual review later and no fork workflow. That instruction
+supersedes the plan's per-milestone PR requirement. `origin` points to
+`https://github.com/farbenbuilds/uWebZockets`; milestone evidence stays local
+on `feat/implement-2-2-0` until the maintainer reviews it.
