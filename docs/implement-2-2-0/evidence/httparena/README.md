@@ -58,3 +58,10 @@ The local socket and request-capacity tests are library correctness evidence.
 The current parser also retains a bounded encoded request; this declaration
 does not claim unbounded tiny-chunk intake or M2 upload streaming. External
 benchmark data and result JSON were not edited.
+
+
+A later [exact static-contract capture](../httparena_static/README.md) records
+that four earlier scratch extractions append one LF to the exact Git bytes.
+The original saved hashes and artifacts remain unchanged. Exact raw/Git blob
+bindings and the additive equivalence record supersede any assumption that
+those earlier extraction hashes were byte-identical Git object payloads.
