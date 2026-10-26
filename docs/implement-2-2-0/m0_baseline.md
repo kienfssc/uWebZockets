@@ -1,7 +1,6 @@
 # M0: freeze the 2.1.6 baseline
 
-Status: verification and independent review passed; PR linkage pending,
-2026-10-26.
+Status: complete, 2026-10-26.
 
 ## Scope and assumptions
 
@@ -80,15 +79,22 @@ under `/tmp/uwz-graphify`. `graphify update .` completed with 5,489 nodes and
 7,831 edges. It reported partial C-header extraction and some files without
 symbols; source reads still verify those details. Graph artifacts stay ignored.
 
-## Remaining acceptance criteria
+## Review and integration
 
 The independent reviewer found one closure gap: M0 requires the selected next
 milestone to be recorded in the implementation PR. No other findings were
-reported. Root integration confirmed the baseline scope, identities, and raw
-gate results; source code, dependency pins, and release tags remain unchanged.
+reported. [Draft PR #1](https://github.com/kienfssc/uWebZockets/pull/1) now
+records M1 as next, with owner `kienfssc` and existing label `enhancement`.
+The initial PR head is `4e49d2697a5ade22cc95d4d3b43e125c37366d1d`.
 
-- Link the implementation draft PR, recording M1 as the selected next milestone.
+The authenticated account lacks write access to `farbenbuilds/uWebZockets`.
+Codespaces configured `origin` as `kienfssc/uWebZockets` and retained the
+original repository as `upstream`. The requested feature branch and cumulative
+draft PR therefore live in that fork. The user-requested single implementation
+branch carries every milestone's reports and review checkpoints.
 
-M0 is not complete until that link is recorded. The single implementation
-branch requested by the user will carry the milestone reports and review
-checkpoints in one cumulative draft PR.
+Root integration confirmed the baseline scope, identities, raw gate results,
+and PR metadata. The baseline commit contains the supplied plan and reports;
+source code, dependency pins, and release tags are unchanged. The missing
+`TODO.md` reference remains an explicit input discrepancy; the supplied plan
+retains its full inventory and acceptance criteria.

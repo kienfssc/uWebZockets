@@ -11,8 +11,8 @@ results and release actions are recorded only when actually performed.
 
 | Milestone | Scope | State | Report |
 | --- | --- | --- | --- |
-| M0 | Freeze the 2.1.6 baseline | In progress | [Baseline](m0_baseline.md) |
-| M1 | Response streaming, static delivery, TLS payloads | Awaiting M0 | Pending |
+| M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
+| M1 | Response streaming, static delivery, TLS payloads | In progress | [Architecture](architecture.md) |
 | M2 | Request streaming and incremental multipart | Awaiting M1 | Pending |
 | M3 | Dependency provenance gates and archives | Awaiting baseline | Pending |
 | M4 | Live WebTransport and compliance | Awaiting M3 | Pending |
@@ -23,3 +23,7 @@ results and release actions are recorded only when actually performed.
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
 release tag, and publication.
+
+The cumulative [draft PR](https://github.com/kienfssc/uWebZockets/pull/1)
+targets the Codespaces-configured fork and is assigned to `kienfssc` with the
+`enhancement` label.
