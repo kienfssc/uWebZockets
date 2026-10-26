@@ -325,6 +325,8 @@ pub const Response = struct {
     stream_framing: StreamFraming = .chunked,
     pending_headers: [pending_header_capacity]u8 = undefined,
     pending_header_length: usize = 0,
+    /// Header-only admission permits fixed refusal responses before upload EOF.
+    request_body_complete: bool = true,
 
     /// Sends a complete response with no additional fields.
     pub fn end(self: *Response, status: []const u8, body: []const u8) !void {
@@ -467,6 +469,7 @@ pub const Response = struct {
         length: u64,
     ) !void {
         if (self.state != .idle) return error.ResponseAlreadyStarted;
+        if (!self.request_body_complete) return error.BodyNotAllowed;
         const code = status_code(status) orelse return error.InvalidStatus;
         if (!valid_headers(headers)) return error.InvalidHeaders;
         if (status_forbids_body(code)) return error.BodyNotAllowed;
@@ -500,6 +503,7 @@ pub const Response = struct {
     /// alias transport storage, and must not be used recursively or concurrently.
     pub fn stream_file(self: *Response, status: []const u8, headers: []const u8, source: FileSource) !void {
         if (self.state != .idle) return error.ResponseAlreadyStarted;
+        if (!self.request_body_complete) return error.BodyNotComplete;
         const code = status_code(status) orelse return error.InvalidStatus;
         if (!valid_headers(headers)) return error.InvalidHeaders;
         if (status_forbids_body(code)) return error.BodyNotAllowed;
@@ -538,6 +542,7 @@ pub const Response = struct {
         headers: []const u8,
     ) !void {
         if (self.state != .idle) return error.ResponseAlreadyStarted;
+        if (!self.request_body_complete) return error.BodyNotComplete;
         const code = status_code(status) orelse return error.InvalidStatus;
         if (!valid_headers(headers)) return error.InvalidHeaders;
         if (status_forbids_body(code)) return error.BodyNotAllowed;
@@ -584,6 +589,7 @@ pub const Response = struct {
         producer: StreamProducer,
     ) !void {
         if (self.state != .idle) return error.ResponseAlreadyStarted;
+        if (!self.request_body_complete) return error.BodyNotComplete;
         const code = status_code(status) orelse return error.InvalidStatus;
         if (!valid_headers(headers)) return error.InvalidHeaders;
         if (status_forbids_body(code)) return error.BodyNotAllowed;

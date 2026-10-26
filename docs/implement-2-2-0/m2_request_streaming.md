@@ -2,7 +2,8 @@
 
 Status: compatibility-preserving architecture accepted, 2026-10-26.
 M1 is complete locally; the [common contract](m2_common_contract.md) is
-implemented and verified. Admission and transport implementation remain open.
+implemented and verified. [Response guards](m2_response_guards.md) also pass
+the combined gates. Admission and transport implementation remain open.
 No request-streaming capability
 is implemented or advertised by this report.
 

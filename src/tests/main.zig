@@ -15,6 +15,7 @@ comptime {
     _ = @import("static_sidecar_tests.zig");
     _ = @import("streaming_request_tests.zig");
     _ = @import("request_body_tests.zig");
+    _ = @import("request_body_response_tests.zig");
     _ = @import("framework_tests.zig");
     _ = @import("helpers_tests.zig");
     _ = @import("http_tests.zig");
