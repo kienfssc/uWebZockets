@@ -120,7 +120,13 @@ Reject next while an event awaits acknowledgement.
 Store pending origin/count, never a retained input pointer. accept_data returns
 additional input advancement: n for input data, zero for previously accepted
 carry/configuration replay. Reoffer the exact unaccepted input suffix; it may
-move to different backing storage. Validate acknowledgement before mutation.
+move to different backing storage. Validate acknowledgement before changing
+byte acceptance state. An invalid acknowledgement accepts zero additional input
+bytes and leaves carry contents, payload/replay cursors and logical counts
+unchanged. It marks the parser failed and invalidates the pending event borrow;
+earlier framing/carry progress is not rolled back. Every parser error after
+successful initialization is terminal. Subsequent next/accept_data/finish calls
+return InvalidMultipartState without emitting events.
 
 When a carried candidate proves false, replay it before accepting the deciding
 mismatch. A paused replay therefore leaves real input for BodyControl.resume.
@@ -144,7 +150,9 @@ finish validates EOF and cleans up; cancel terminates once.
 Only successful begin establishes an active part. Failed begin rolls itself
 back and receives no cancel. Validate write progress with the common body
 contract before acknowledging it. Write/parser failure retains the active part
-for outer cancellation after the chunk callback unwinds.
+for outer cancellation after the chunk callback unwinds. Parser failure must
+not suppress cleanup of that accepted active part; invalid sink progress is
+rejected before accept_data.
 
 Mark a part inactive before end_part: it owns cleanup on success, pause or error
 and never receives a later cancel. Mark terminal before cancel_part; notify an
@@ -175,6 +183,8 @@ Prove all delimiter/header splits at boundary lengths 1/70, false prefixes,
 overlaps, exact bounds, minimum B+4 success/B+3 init refusal, guard bytes,
 quoted metadata, empty/missing/duplicate
 names, truncation at every offset and invalid terminal/progress operations.
+Invalid acknowledgement preserves byte-accounting state and carry contents
+while invalidating the event and latching failure; later operations emit nothing.
 Pause at every event/data prefix, relocate input, poison accepted storage and
 check exact output. Exercise each replay fragment with the final real mismatch
 retained; prove zero-input resume into finish and once-only cleanup/error paths.
@@ -198,3 +208,8 @@ No additional byte-ownership/EOF defect was found. Compression review also
 required the explicit init carry minimum; the decision and acceptance now
 preserve it. Bounded re-review found no remaining findings; root accepts the
 contract. No implementation results are claimed.
+
+An implementation-time ambiguity review clarified that invalid acknowledgement
+changes only terminal/event-control state, accepting no additional bytes. This
+preserves both pre-acceptance validation and the no-events-after-error contract;
+independent bounded review accepted the clarification before implementation.
