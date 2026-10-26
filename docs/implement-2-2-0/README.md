@@ -14,7 +14,7 @@ results and release actions are recorded only when actually performed.
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | In progress | [Streaming, static, TLS](m1_streaming_static_tls.md) |
 | M2 | Request streaming and incremental multipart | Awaiting M1 | Pending |
-| M3 | Dependency provenance gates and archives | Not started | Pending |
+| M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Awaiting M3 | Pending |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | Pending |
 | M6 | Performance, platform, GRO, and API decisions | Awaiting code and pin freeze | Pending |
