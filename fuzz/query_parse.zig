@@ -10,6 +10,7 @@ const offers = [_][]const u8{ "application/json", "text/html", "*/*" };
 
 pub fn fuzz_one(input: []const u8) void {
     if (input.len > max_input_size) return;
+    fuzz_content_coding(input);
 
     const params = query.QueryParams.parse_link(input) catch return;
     var scratch: [scratch_size]u8 = undefined;
@@ -27,6 +28,31 @@ pub fn fuzz_one(input: []const u8) void {
     if (accept.count > negotiate.max_entries) @panic("Accept parser overflowed its capacity");
     if (negotiate.best(accept, &offers)) |offer| {
         if (!offer_is_requested(offer)) @panic("Accept negotiation returned an unknown offer");
+    }
+}
+
+fn fuzz_content_coding(input: []const u8) void {
+    for (0..8) |mask| {
+        const available = negotiate.EncodingAvailability{
+            .identity = mask & 1 != 0,
+            .gzip = mask & 2 != 0,
+            .br = mask & 4 != 0,
+        };
+        const chosen = negotiate.select_encoding(input, available) orelse continue;
+        const enabled = switch (chosen) {
+            .identity => available.identity,
+            .gzip => available.gzip,
+            .br => available.br,
+        };
+        if (!enabled) @panic("coding negotiation selected an unavailable representation");
+    }
+
+    const refusal = "br;q=0,gzip;q=0,identity;q=0,";
+    var blocked: [refusal.len + max_input_size]u8 = undefined;
+    @memcpy(blocked[0..refusal.len], refusal);
+    @memcpy(blocked[refusal.len..][0..input.len], input);
+    if (negotiate.select_encoding(blocked[0 .. refusal.len + input.len], .{ .gzip = true, .br = true }) != null) {
+        @panic("coding negotiation erased an explicit refusal");
     }
 }
 

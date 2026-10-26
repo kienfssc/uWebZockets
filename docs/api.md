@@ -179,6 +179,12 @@ _ = try app.rpc("/rpc", &service);
 _ = try app.openapi("/openapi.json");
 ```
 
+`negotiate.select_encoding(header, available)` returns an optional
+`Encoding` (`identity`, `gzip`, or `br`) using fixed storage and no I/O. See
+[the content-coding contract](adr/0009-static-content-coding.md) for weights,
+refusals, and duplicate handling. Callers supply verified availability; static
+sidecar selection is a separate integration step.
+
 ## Cluster
 
 `listen_all(&.{ ... })` binds up to four TCP endpoints and does not arm any

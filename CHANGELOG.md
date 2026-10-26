@@ -5,6 +5,9 @@ uses Semantic Versioning.
 
 ## [Unreleased]
 
+- Add pure, constant-storage content-coding negotiation with explicit refusal
+  handling, and correct the shared RFC 9110 qvalue fractional bounds.
+
 ### Fixed
 
 - Response producers fail closed when they return `.done` without successfully

@@ -2,9 +2,11 @@
 
 Status: in progress, 2026-10-26. M0 is complete.
 
-The first implementation slice has passed 663/663 native Debug tests and
-independent local re-review. Sanitizer, ReleaseSafe, cross-target, real TLS
-saturation, and the remaining M1 features still require verification or work.
+The reviewed producer-completion slice passed 663/663 native Debug tests. The
+combined response matrix and negotiation checkpoint now passes 678/678 tests
+and independent local review. Sanitizer, ReleaseSafe, cross-target, literal TLS
+socket saturation, and the remaining M1 features still require verification or
+work.
 
 ## Scope
 
@@ -68,7 +70,7 @@ and linked from [the API guide](../api.md#response).
   and [ReleaseSafe compilation](evidence/m1_a/release_safe_initial_interrupted.log)
   were deliberately stopped, both exit 143, before applying the required review
   fix below. Neither result is passing verification. Compiler caches remain
-  available for the corrected snapshot. Nix is absent; the sanitizer attempt
+  available for the corrected snapshot. Nix was absent at that attempt, which
   used the supported `-Dsanitizer-lib-dir` option with the installed LLVM 18
   runtime, `-Dsanitize=true`, and `-Doptimize=ReleaseSafe`. The later Nix-wrapped
   release matrix is also still required.
@@ -149,16 +151,35 @@ Zig 0.17.0 was already used only to build the existing generator tool.
 
 ### Remaining M1-1 acceptance
 
-- HTTP/1, real TLS, HTTP/2, and HTTP/3 matrix with logical 1-byte, 16 KiB, and
-  64 KiB emissions, including pending/drain progress.
-- Framed transport close/reset and once-only cleanup proof.
-- Empty writes and HEAD/204/304 rejection coverage.
-- Sanitizer gate, independent local review, and transport-matrix allocation
-  and caller-buffer lifetime audit.
+The [response matrix report](m1_response_matrix.md) records slice B at
+`105348524d9caa65d93cf9aa3c44b0ffafda1b07`: logical 1-byte, 16 KiB, and 64 KiB
+emissions on HTTP/1, real TLS BIOs, HTTP/2, and HTTP/3, including pending/drain,
+empty writes, bodyless refusal, source poisoning, fixed storage, and framed
+completion. Slice A retains close/reset and once-only cleanup coverage.
+
+Sanitizer and target gates remain open. Literal TLS socket saturation and the
+100 KiB record proof belong to M1-3; BIO coverage does not close them.
 
 ## M1-2: large static files and sidecars
 
-Not implemented yet. Required: per-transfer bounded file lifetime and exact
+The pure negotiation slice is implemented and independently reviewed under
+[ADR 0009](../adr/0009-static-content-coding.md). It exposes named coding and
+availability types plus `negotiate.select_encoding`, scans the full bounded
+header with constant scalar storage, and preserves late refusals. Duplicate
+codings use minimum quality; known codings with malformed weights are refused.
+No file I/O, allocation, lock, or retained borrowed slice is added.
+
+Two regressions reproduced the shared qvalue parser's incorrect fractional
+bounds: both failed before the fix and passed afterward. The new helper's
+focused suite passes 8/8 tests. The exact commands and raw results are under
+[negotiation evidence](evidence/m1_e/README.md). Smith and LLVM query/negotiation
+coverage now exercise availability and the invariant that later bytes cannot
+erase an explicit refusal. The combined native suite passes 678/678, LLVM smoke
+passes all 11 build steps, and the requested 100K fuzz run completes 103,733
+executions with exit 0. Package-consumer and sanitizer results remain open.
+This slice does not connect sidecar selection to static-file responses.
+
+Still required: per-transfer bounded file lifetime and exact
 length framing for TLS/HTTP/2/HTTP/3; files larger than the existing buffer;
 validators, HEAD, ranges and If-Range; pure quality-aware Accept-Encoding;
 fresh `.gz`/`.br` sidecars with representation-specific validators and Vary;

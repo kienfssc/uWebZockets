@@ -27,6 +27,8 @@ test "fuzz: protocol parsers preserve bounded state" {
             "[{\"jsonrpc\":\"2.0\",\"method\":\"echo\"},17]",
             "[{\"jsonrpc\":\"2.0\",\"method\":\"echo\",\"id\":1},",
             "session=abc; theme=dark; empty=; broken; =x",
+            "br;q=0.8, gzip;q=1., identity;q=0, *;q=0",
+            "gzip;q=1.0000, gzip;q=0, *;q=1",
             // HPACK: RFC 7541 C.3 and C.4 request vectors, a table-size update,
             // a truncated literal, and a dynamic insert followed by an index.
             "\x82\x86\x84\x41\x0fwww.example.com",
@@ -48,6 +50,7 @@ fn fuzz_protocol_parsers(_: void, smith: *std.testing.Smith) !void {
     @disableInstrumentation();
     try fuzz_http_parser(smith);
     try fuzz_http_query(smith);
+    try fuzz_content_coding(smith);
     try fuzz_cookie_jar(smith);
     try fuzz_zslay_receive(smith);
     fuzz_extension_negotiation(smith);
@@ -55,6 +58,41 @@ fn fuzz_protocol_parsers(_: void, smith: *std.testing.Smith) !void {
     try fuzz_json_rpc(smith);
     try fuzz_hpack_decode(smith);
     try fuzz_multipart_parse(smith);
+}
+
+fn fuzz_content_coding(smith: *std.testing.Smith) !void {
+    var input: [1024]u8 = undefined;
+    const length: usize = @intCast(smith.sliceWeightedBytes(&input, &.{
+        .rangeAtMost(u8, 0x20, 0x7e, 4),
+        .value(u8, ',', 8),
+        .value(u8, ';', 8),
+        .value(u8, '=', 8),
+        .value(u8, 'q', 8),
+        .value(u8, 0xff, 1),
+    }));
+    const bytes = input[0..length];
+    for (0..8) |mask| {
+        const available = negotiate.EncodingAvailability{
+            .identity = mask & 1 != 0,
+            .gzip = mask & 2 != 0,
+            .br = mask & 4 != 0,
+        };
+        const chosen = negotiate.select_encoding(bytes, available) orelse continue;
+        try std.testing.expect(switch (chosen) {
+            .identity => available.identity,
+            .gzip => available.gzip,
+            .br => available.br,
+        });
+    }
+
+    const refusal = "br;q=0,gzip;q=0,identity;q=0,";
+    var blocked: [refusal.len + input.len]u8 = undefined;
+    @memcpy(blocked[0..refusal.len], refusal);
+    @memcpy(blocked[refusal.len..][0..length], bytes);
+    try std.testing.expectEqual(@as(?negotiate.Encoding, null), negotiate.select_encoding(
+        blocked[0 .. refusal.len + length],
+        .{ .gzip = true, .br = true },
+    ));
 }
 
 fn fuzz_http_query(smith: *std.testing.Smith) !void {

@@ -219,6 +219,16 @@ ETag or Last-Modified value before a range is applied. Plaintext `GET` and
 (`Response.send_file`), so assets are not capped by the per-route file buffer.
 TLS, HTTP/2, and HTTP/3 remain on the bounded buffered path.
 
+`negotiate.select_encoding(header, available)` is a pure helper for choosing
+among caller-verified identity, gzip, and br representations. It scans the full
+borrowed header with constant storage, honors explicit refusals and wildcard
+weights, and returns null when every available representation is refused.
+Absent fields prefer identity; equal positive weights prefer br, gzip, then
+identity. Repeated codings use their minimum weight. The named
+`EncodingAvailability` defaults to identity only. The contract and malformed
+input policy are recorded in [ADR 0009](adr/0009-static-content-coding.md).
+Sidecar file selection is not connected to `App.static` yet.
+
 ## Request and response helpers
 
 Framework modules expose zero-allocation query/form parsing with SIMD slicing

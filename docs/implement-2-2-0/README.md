@@ -20,6 +20,9 @@ results and release actions are recorded only when actually performed.
 | M6 | Performance, platform, GRO, and API decisions | Awaiting code and pin freeze | Pending |
 | M7 | Release metadata and final verification | Awaiting M1 through M6 | Pending |
 
+M1 slice reports: [response transport matrix](m1_response_matrix.md) and
+[content-coding evidence](evidence/m1_e/README.md).
+
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
 release tag, and publication.
