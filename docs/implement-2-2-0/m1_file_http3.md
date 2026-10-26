@@ -1,7 +1,8 @@
 # M1: HTTP/3 bounded file responses
 
 Status: implemented, independently reviewed, and integrated, 2026-10-26.
-Combined native proof passes; sanitizer, platform, and live interop follow.
+Combined native, sanitizer, target compilation, and ordinary HTTP/3 interop
+proof pass at the frozen backend checkpoint. Live static files follow.
 
 Each QuicStream owns one FileTransfer. Its file callback validates and prepares
 the known-length head within existing header bounds before accepting ownership.
@@ -49,7 +50,25 @@ stream objects; its estimator is unchanged. No TCP slab assertion changes here.
 
 The [source manifest](evidence/m1_file_h3/source_manifest.json) and raw layout
 logs bind these results. Formatting, conventions, version/docs, dependency
-checks, and graph refresh pass. Run the combined sanitizer/target/example,
-package-consumer, and pinned HTTP/3 client gates on the immutable integrated
-checkpoint. Static routing, compressed sidecars, and the 100 MB matrix remain
-M1 work; fake-I/O cases do not claim live-client file coverage.
+checks, and graph refresh pass.
+
+The [frozen verification archive](evidence/m1_file_h3/frozen_verification/SHA256SUMS)
+binds combined gates to `ee4bf1c9180533cd429c75ed427d8766f467e17d` and Zig 0.16.0:
+
+- ReleaseSafe ASan/UBSan full tests: 713/713, 22/22 steps, exit 0.
+- Native ReleaseSafe, Windows GNU, and macOS arm64 compilation: 20/20 steps
+  each, exit 0. These are compilation claims, not non-Linux runtime claims.
+- Default ReleaseSafe build: 47/47 steps, including http3_server, exit 0.
+- Pinned curl 8.21.0/ngtcp2 1.22.1/nghttp3 1.15.0 and aioquic 1.3.0 HTTP/3 gate:
+  exit 0. Positive/trailer, malformed/sibling, oversized-QPACK/sibling, and
+  300/300 rejection-soak checks pass, followed by healthy requests.
+
+Independent artifact review verifies hashes, exact source/scripts/pins/client
+versions, individual statuses, and safe archive paths. No sanitizer violation
+appears; deliberate fault warnings remain. The HTTP/3 tar SHA-256 is
+`0c96cca12dbbec74ed2cb2a1a240208cc458676526124814ef6f461535eebd34`.
+It retains ordinary closed-test QUIC protocol metadata, with no private keys,
+credentials, or TLS traffic-secret keylogs. These gates do not prove live static
+files, package consumption, MSan, cold fetching, or performance. Later static
+and sidecar slices require matching evidence; the 100 MB live matrix remains
+M1 acceptance work.

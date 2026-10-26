@@ -163,10 +163,11 @@ emissions on HTTP/1, real TLS BIOs, HTTP/2, and HTTP/3, including pending/drain,
 empty writes, bodyless refusal, source poisoning, fixed storage, and framed
 completion. Slice A retains close/reset and once-only cleanup coverage.
 
-Current-source sanitizer and target gates remain open. Literal TLS socket
-saturation and the 100 KiB record proof are recorded under M1-3.
-Still required: exercise pending HTTP/2 resets and a healthy sibling through
-real TLS write backpressure.
+The combined file-backend checkpoint passes sanitizer and target compilation
+as recorded below; later static selection needs matching final gates. Literal
+TLS saturation and the 100 KiB record proof are under M1-3. The
+[HTTP/2 file backend](m1_file_http2.md) records pending reset isolation and a
+healthy sibling through real TLS write backpressure.
 
 ## M1-2: large static files and sidecars
 
@@ -197,7 +198,10 @@ The earlier H1 slice passes 694/694 tests and macOS arm64 compilation. Its immut
 ReleaseSafe/Windows/macOS compilation. Later backend slices require fresh gates.
 
 The [HTTP/3 backend](m1_file_http3.md) is integrated after independent review;
-the combined native suite passes 713/713. Matching combined gates remain open.
+the combined native suite passes 713/713. Its immutable ee4bf1c checkpoint also
+passes sanitizers with 713/713 tests, native/Windows/macOS compilation, the
+47-step default build, and the pinned ordinary HTTP/3 compliance gate. These
+predate static selection and do not establish live static delivery.
 
 [Basic static integration](m1_static_streaming.md) passes 730/730 native tests,
 including exact 100 MiB TLS HTTP/1 and HTTP/2 downloads, metadata, and ranges.
