@@ -137,3 +137,34 @@ hash semantics, and credential/private-key candidates. The additive generator
 correction resolves its sole new evidence finding. The HPACK mismatch and
 terminal-status retention limits above remain explicit; no new heavy gate was
 run by the reviewer.
+
+
+## Current-pin recovery archives and notice correction
+
+On 2026-10-26, [five complete reachable-history bundles](evidence/m3_pin_archives/README.md)
+were captured for the three current maintained pins and lsquic's two codec
+sources. The 14,918,981-byte archive SHA-256 is
+`d7fad900595499141777bb3f6fcdd8999f1a8e8917a1704432a1afc329a7a6c5`.
+Each bundle verifies without external commit prerequisites and restores its
+exact pin/tree/count into an empty repository with strict fsck. Full working
+trees, including both actual lsquic child gitlinks, reconstruct offline on this
+host. The newer root HPACK pin and older lsquic child remain distinct.
+
+Independent review validates all 435 inner checksums, safe archive paths,
+manifest bindings, license text hashes, and 135 raw command outcomes. These
+are current-pin reachable histories, not all-ref mirrors, final-release pins,
+second-machine resolution, protection acceptance, or runtime/build evidence.
+Plaintext records contain no private-key/credential markers; packed third-party
+history was not exhaustively scanned. No remote ref, source pin, or fetched
+cache was changed.
+
+The pinned h1spec tree and its upstream ancestor have no license notice or
+matching grant text. Its 22-commit reachable history and GitHub license queries
+also do not substantiate the prior MIT attribution. The source/API records are
+retained, and THIRD_PARTY_NOTICES now marks the attribution unverified rather
+than inventing a grant. This is a provenance observation, not a legal conclusion.
+The repository maintainer must substantiate permission/attribution or resolve
+inclusion before release. Together with mirror/publication/protection and
+second-machine requirements, this keeps M3/C13 open. Refresh these archives
+after any final reviewed pin change; recovery instructions and responsible
+restoration steps accompany the artifact.
