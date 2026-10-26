@@ -86,3 +86,19 @@ draft remains frozen and unintegrated; its Request/default-slab growth must
 not be applied to production assertions. The next checkpoint must prove the
 actual new types, unchanged buffered compiler consumers, clone failure/lifetime
 behavior and measured production layouts before transport integration.
+
+
+## Incremental multipart contract
+
+[ADR0011](../adr/0011-incremental-multipart.md) accepts a pure event parser and
+a separate concrete part-sink adapter. Input data is accepted only after sink
+acknowledgement; carry is bounded by boundary.len + 4, with false-prefix replay
+leaving real input available for resume. EOF validates without flushing deferred
+application payload. Part cleanup is once-only, including paused terminal events.
+
+[Review evidence](evidence/m2_multipart_design/README.md) records preserved legacy
+helper error sets, distinct new typed refusals and the explicit init carry
+minimum. MP-L1 re-declares ordinary delimiter padding as unsupported with a
+reviewed restoration criterion. No general RFC conformance or implementation
+result follows from this design. Isolated parser preparation may proceed;
+production multipart integration follows the common sink and transport gates.
