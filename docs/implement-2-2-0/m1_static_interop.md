@@ -67,3 +67,27 @@ bytes. Earlier preparation prose/log output incorrectly printed 47; actual
 decoder checks used the full fixture. The original log remains unchanged and
 the additive manifest records the correction and exact hash. README is fixed.
 A fresh exact-source full live run remains required.
+
+
+## Four-protocol curl proof and remaining aioquic run
+
+The [second saved-revision run](evidence/m1_static_interop/second_live_failed.json)
+at `1488ecc49721dde935ee628b6b5668e99d600836` passes every curl matrix:
+plaintext H1, TLS H1, TLS H2, and live H3 each compare exactly 104,857,600 bytes,
+validate Content-Length, and reuse the connection. Across 92 curl invocations
+and 96 responses, all 84 small-file checks pass, including real gzip/Brotli
+decoding. The archive retains 23 nonempty H3 transport qlogs. All three owned
+servers exit zero without forced killing and log completed resource teardown.
+
+The aggregate run still exits 1. Its low-level aioquic client receives the
+healthy sibling's exact two bytes and END_STREAM, then incorrectly requires
+Content-Length on that ordinary health response. The large static stream has
+compared 65,415 bytes at that point; its completion is not claimed.
+
+The reviewed correction makes the length policy explicit per request: static
+files require one exact Content-Length; health may omit it, and any present
+value still must be unique and exact. Body equality, source EOF, END_STREAM,
+status, and encoding checks remain. Focused RED/GREEN cases retain missing,
+duplicate, mismatched, corrupt-body, and incomplete-end refusals. A fresh full
+live run must complete the large aioquic stream, healthy sibling, and reuse.
+The original failed artifact and generated results remain unchanged.

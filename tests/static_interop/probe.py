@@ -142,6 +142,7 @@ ResponseState = TypedDict("ResponseState", {
     "source": BinaryIO, "output": BinaryIO, "body_path": Path,
     "headers": list[tuple[bytes, bytes]], "bytes": int,
     "max_event_bytes": int, "done": bool, "proof": dict,
+    "require_content_length": bool,
 })
 
 QuicClientState = TypedDict("QuicClientState", {
@@ -384,7 +385,8 @@ def h3_consume(state: QuicClientState, message: H3Event) -> None:
     for name, value in response["headers"]:
         fields.setdefault(name.decode("ascii"), []).append(value.decode("ascii"))
     require(one_header(fields, ":status") == "200", "aioquic wrong status")
-    require(one_header(fields, "content-length") == str(response["bytes"]), "aioquic Content-Length differs")
+    if response["require_content_length"] or "content-length" in fields:
+        require(one_header(fields, "content-length") == str(response["bytes"]), "aioquic Content-Length differs")
     require("content-encoding" not in fields, "aioquic identity transfer has Content-Encoding")
     response["output"].flush()
     proof = digest_file(response["body_path"])
@@ -442,10 +444,10 @@ def quic_step(state: QuicClientState, udp: socket.socket, buffer: bytearray, dea
     quic_events(state, closing=closing)
 
 
-def start_h3_request(state: QuicClientState, endpoint: Endpoint, files: ExitStack, directory: Path, root: Path, path: str, filename: str, label: str) -> int:
+def start_h3_request(state: QuicClientState, endpoint: Endpoint, files: ExitStack, directory: Path, root: Path, path: str, filename: str, label: str, *, require_content_length: bool) -> int:
     stream_id = state["quic"].get_next_available_stream_id()
     body_path = directory / (label + ".body")
-    state["requests"][stream_id] = ResponseState(source=files.enter_context((root / filename).open("rb")), output=files.enter_context(body_path.open("wb")), body_path=body_path, headers=[], bytes=0, max_event_bytes=0, done=False, proof={})
+    state["requests"][stream_id] = ResponseState(source=files.enter_context((root / filename).open("rb")), output=files.enter_context(body_path.open("wb")), body_path=body_path, headers=[], bytes=0, max_event_bytes=0, done=False, proof={}, require_content_length=require_content_length)
     headers = [(b":method", b"GET"), (b":scheme", b"https"), (b":authority", f"127.0.0.1:{endpoint['port']}".encode()), (b":path", path.encode()), (b"accept-encoding", b"identity")]
     state["http"].send_headers(stream_id, headers, end_stream=True)
     application_event(state, {"event": "request", "stream_id": stream_id, "path": path})
@@ -474,11 +476,11 @@ def aioquic_large(endpoint: Endpoint, directory: Path, root: Path) -> dict:
         try:
             while not state["handshake"]:
                 quic_step(state, udp, buffer, deadline)
-            large_id = start_h3_request(state, endpoint, files, directory, root, "/files/large.bin", "large.bin", "aioquic_large")
-            sibling_id = start_h3_request(state, endpoint, files, directory, root, "/health", "health.expected", "aioquic_sibling")
+            large_id = start_h3_request(state, endpoint, files, directory, root, "/files/large.bin", "large.bin", "aioquic_large", require_content_length=True)
+            sibling_id = start_h3_request(state, endpoint, files, directory, root, "/health", "health.expected", "aioquic_sibling", require_content_length=False)
             while not all(state["requests"][stream_id]["done"] for stream_id in (large_id, sibling_id)):
                 quic_step(state, udp, buffer, deadline)
-            reuse_id = start_h3_request(state, endpoint, files, directory, root, "/health", "health.expected", "aioquic_reuse")
+            reuse_id = start_h3_request(state, endpoint, files, directory, root, "/health", "health.expected", "aioquic_reuse", require_content_length=False)
             while not state["requests"][reuse_id]["done"]:
                 quic_step(state, udp, buffer, deadline)
             require(state["requests"][large_id]["proof"]["bytes"] == LARGE_SIZE, "aioquic large byte count differs")
