@@ -110,7 +110,7 @@ encountering a fatal transport error still fails closed.
 #### Bounded file responses
 
 `res.stream_file(status, headers, source)` sends a known-length file through
-the HTTP/1 output path, including TLS. `uz.FileSource` supplies the open file,
+HTTP/1, TLS HTTP/1, HTTP/2, or HTTP/3. `uz.FileSource` supplies the open file,
 `std.Io` context, nonempty scratch slice, offset, and length. The scratch and
 Io context must remain valid until completion or cancellation. Keep the
 scratch separate from transport storage and use it only on its owning loop,
@@ -124,9 +124,10 @@ file without reading; an empty file also completes without body reads. Bodyless
 statuses and successful CONNECT responses are refused before ownership changes.
 The response uses Content-Length and raw file bytes, without chunk delimiters.
 
-HTTP/2 also supports bounded file responses with per-stream file ownership and
-both flow-control windows. HTTP/3 integration is still pending; that target
-returns FileStreamingUnsupported before accepting a file.
+HTTP/2 bounds reads by both flow-control windows. HTTP/3 copies accepted bytes
+into its existing body storage before later partial writes. Both own a file
+per stream. Legacy custom targets without file support return
+FileStreamingUnsupported before accepting a descriptor.
 Plaintext send_file remains the kernel path. App.static integration follows
 separately. The ownership and framing decision is [ADR 0010](adr/0010-bounded-file-streaming.md).
 

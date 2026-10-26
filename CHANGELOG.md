@@ -9,6 +9,8 @@ uses Semantic Versioning.
   caller-provided scratch and transport-owned descriptor cleanup.
 - Extend bounded file responses to HTTP/2 with per-stream ownership, exact
   framing, flow-control bounds, and TLS reset isolation under output pressure.
+- Add HTTP/3 known-length file responses with copied partial-write storage and
+  once-only descriptor cleanup across completion, faults, resets, and reuse.
 
 - Prove bounded 100 KiB TLS/plaintext producer responses and true POST echo,
   including request-storage pinning; document the explicit intake capacity and

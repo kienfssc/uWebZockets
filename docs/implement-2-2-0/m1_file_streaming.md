@@ -1,7 +1,7 @@
 # M1: bounded file streaming
 
-Status: HTTP/1 and HTTP/2 implemented and independently reviewed, 2026-10-26.
-HTTP/3 integration, static delivery, and final gates remain open.
+Status: HTTP/1, HTTP/2, and HTTP/3 file backends implemented and independently
+reviewed, 2026-10-26. Static delivery and combined final gates remain open.
 
 ## HTTP/1 ownership and framing
 
@@ -32,7 +32,7 @@ Plaintext send_file retains its existing kernel path.
 HTTP/2 and HTTP/3 gain default-null, named file-arming callback fields. Existing
 custom target initializers remain valid and refuse unsupported file streaming
 before ownership. [The HTTP/2 backend](m1_file_http2.md) implements its callback;
-HTTP/3 integration follows separately.
+[The HTTP/3 backend](m1_file_http3.md) now implements its callback too.
 
 ## Verification
 
@@ -96,9 +96,9 @@ shutdown claim. These results verify this checkpoint, not later H2/H3 work.
 
 The HTTP/2 slice implements persistent slots, known-length headers, bounded
 windows, close/recycle cleanup, and real TLS reset isolation.
-Add HTTP/3 persistent transfer state and retain
-accepted bytes in its existing output storage through partial writes. Prove
-cleanup, shared scratch poisoning, small windows, and final-credit exhaustion.
+The HTTP/3 slice adds persistent transfer state and retains accepted bytes in
+its existing output storage through partial writes. The integrated native suite
+passes 713/713; combined sanitizers, platforms, and live client gates follow.
 
 Then connect static delivery, select fresh confined gzip/br sidecars, and apply
 validators and ranges to the selected representation. No current evidence

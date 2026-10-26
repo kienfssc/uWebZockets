@@ -5,6 +5,7 @@ const Request = @import("../http/request.zig").Request;
 const http_response = @import("../http/response.zig");
 const Response = http_response.Response;
 const Http3Target = http_response.Http3Target;
+const file_transfer = @import("../http/file_transfer.zig");
 const Router = @import("../router/radix.zig").Router;
 const radix = @import("../router/radix.zig");
 const validation = @import("validation.zig");
@@ -387,6 +388,7 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
         stream_producer_context: ?*anyopaque = null,
         stream_producer: ?http_response.StreamProducer = null,
         async_response_state: http_response.AsyncResponseState = .{},
+        file_transfer_state: file_transfer.FileTransfer = .{},
 
         /// Reinitializes a pooled stream with borrowed transport and storage.
         ///
@@ -408,6 +410,7 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
             header_extra_names: [][]const u8,
             header_extra_values: [][]const u8,
         ) void {
+            self.clear_stream_producer();
             var next_generation = self.async_response_state.generation +% 1;
             if (next_generation == 0) next_generation = 1;
             self.* = .{
@@ -431,14 +434,14 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
         pub fn attach_headers(self: *Self, header_set: *HeaderSet) void {
             if (!header_set.finished or header_set.claimed) {
                 header_set.release();
-                _ = io.close(self.stream);
+                self.close_now();
                 return;
             }
 
             if (header_set.is_trailer) {
                 if (self.header_set == null or self.request_phase != .body) {
                     header_set.release();
-                    _ = io.close(self.stream);
+                    self.close_now();
                     return;
                 }
                 header_set.claimed = true;
@@ -449,7 +452,7 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
 
             if (self.header_set != null or self.request_phase != .waiting_headers) {
                 header_set.release();
-                _ = io.close(self.stream);
+                self.close_now();
                 return;
             }
             header_set.claimed = true;
@@ -460,7 +463,7 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
         /// Drains readable request bytes and dispatches a complete request.
         pub fn on_read(self: *Self) void {
             if (self.header_set == null or self.dispatched) {
-                _ = io.close(self.stream);
+                self.close_now();
                 return;
             }
 
@@ -513,7 +516,7 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
 
             if (!self.headers_sent) {
                 if (!self.send_headers()) {
-                    _ = io.close(self.stream);
+                    self.close_now();
                     return;
                 }
                 self.headers_sent = true;
@@ -555,7 +558,7 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
                 const body = self.response_body_storage[self.response_body_offset..self.response_body_length];
                 const written = io.write(self.stream, body.ptr, body.len);
                 if (written < 0) {
-                    _ = io.close(self.stream);
+                    self.close_now();
                     return false;
                 }
                 if (written == 0) return false;
@@ -578,6 +581,9 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
                 return .done;
             };
 
+            if (self.file_transfer_state.file != null) {
+                self.file_transfer_state.chunk_limit = self.response_body_storage.len - self.response_body_length;
+            }
             var response = Response{
                 .target = .{ .http3 = self.target() },
                 .state = .streaming,
@@ -604,7 +610,6 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
             self.clear_stream_producer();
             if (self.headers_sent or self.response_phase != .streaming) {
                 self.close_now();
-                self.response_phase = .done;
                 return;
             }
             self.response_phase = .idle;
@@ -615,6 +620,7 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
         fn clear_stream_producer(self: *Self) void {
             self.stream_producer = null;
             self.stream_producer_context = null;
+            file_transfer.close(&self.file_transfer_state);
         }
 
         /// Cancels deferred dispatch and returns pooled state to its owner.
@@ -793,6 +799,7 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
                 .finish_fn = finish_response,
                 .abort_fn = abort_response,
                 .begin_stream_fn = begin_stream_response,
+                .stream_file_fn = begin_file_response,
             };
         }
 
@@ -841,6 +848,67 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
                 return false;
             }
             return true;
+        }
+
+        /// Commits ownership only after the known-length head fits the fixed storage.
+        fn begin_file_response(
+            context: *anyopaque,
+            status: []const u8,
+            headers: []const u8,
+            source: http_response.FileSource,
+        ) anyerror!void {
+            const self: *Self = @ptrCast(@alignCast(context));
+            if (self.response_phase != .idle) return error.ResponseAlreadyStarted;
+            if (self.file_transfer_state.file != null) return error.ResponseAlreadyStarted;
+            const code = http_response.status_code(status) orelse return error.InvalidStatus;
+            if (http_response.status_forbids_body(code)) return error.BodyNotAllowed;
+            if (code < 300 and self.header_set != null and
+                std.mem.eql(u8, self.header_set.?.request.method, "CONNECT")) return error.BodyNotAllowed;
+            if (!http_response.valid_headers(headers)) return error.InvalidHeaders;
+            if (source.buffer.len == 0) return error.InvalidFileSource;
+            _ = std.math.add(u64, source.offset, source.length) catch return error.InvalidFileSource;
+            if (!self.suppress_body and source.length != 0 and self.response_body_storage.len == 0) {
+                return error.WouldBlock;
+            }
+            try self.prepare_response(status, headers);
+            try self.prepare_file_length(source.length);
+
+            self.response_body_offset = 0;
+            self.response_body_length = 0;
+            self.response_phase = .streaming;
+            self.stream_producer = file_transfer.produce;
+            self.stream_producer_context = &self.file_transfer_state;
+            self.file_transfer_state = .{
+                .io = source.io,
+                .file = source.file,
+                .buffer = source.buffer,
+                .offset = source.offset,
+                .remaining = if (self.suppress_body) 0 else source.length,
+            };
+            // Producer faults now own teardown; returning an error would imply
+            // the caller still owns a descriptor the stream has already closed.
+            if (self.step_stream_producer() != .done) _ = io.wantwrite(self.stream, 1);
+        }
+
+        /// Adds generated framing without extending field or byte capacity.
+        fn prepare_file_length(self: *Self, length: u64) !void {
+            const name = "content-length";
+            var digits: [20]u8 = undefined;
+            const value = std.fmt.bufPrint(&digits, "{d}", .{length}) catch return error.BufferOverflow;
+            if (self.response_header_count == capacities.response_header_count) return error.BufferOverflow;
+            const required = name.len + value.len;
+            if (required > self.response_header_storage.len - self.response_header_length) return error.BufferOverflow;
+            const index = self.response_header_count;
+            const name_offset = self.response_header_length;
+            const value_offset = name_offset + name.len;
+            @memcpy(self.response_header_storage[name_offset..][0..name.len], name);
+            @memcpy(self.response_header_storage[value_offset..][0..value.len], value);
+            self.response_name_offsets[index] = @intCast(name_offset);
+            self.response_name_lengths[index] = name.len;
+            self.response_value_offsets[index] = @intCast(value_offset);
+            self.response_value_lengths[index] = @intCast(value.len);
+            self.response_header_length += required;
+            self.response_header_count += 1;
         }
 
         fn write_response(context: *anyopaque, body: []const u8) !void {
@@ -974,12 +1042,12 @@ pub fn stream_with(comptime io: StreamIo, comptime capacities: Capacities) type 
         fn abort_response(context: *anyopaque) void {
             const self: *Self = @ptrCast(@alignCast(context));
             self.close_now();
-            self.response_phase = .done;
         }
 
         fn close_now(self: *Self) void {
             self.async_response_state.cancel();
             self.clear_stream_producer();
+            self.response_phase = .done;
             _ = io.close(self.stream);
         }
     };

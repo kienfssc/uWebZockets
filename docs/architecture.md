@@ -276,8 +276,9 @@ and tail latency hold up on lossy paths.
   `Response.stream_file`. HTTP/1 TCP owns one inline transfer slot, retains
   the descriptor through output drain, and borrows separate caller scratch.
   TLS uses the existing bounded record writer. HTTP/2 owns one transfer per
-  stream slot, bounded by frame/output capacity and both windows. HTTP/3 and
-  static-route integration remain separate work on the 2.2.0 feature branch.
+  stream slot, bounded by frame/output capacity and both windows. HTTP/3 owns
+  one transfer per QuicStream and copies accepted bytes into body storage for
+  partial writes. Static-route integration remains separate feature-branch work.
 - `src/xdp/socket.zig` implements AF_XDP UMEM ownership rings and the TX path,
   and `src/xdp/transport.zig` exposes the bypass transport to callers that
   drive it directly. The server data path always serves through the standard

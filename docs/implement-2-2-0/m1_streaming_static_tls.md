@@ -196,7 +196,10 @@ The earlier H1 slice passes 694/694 tests and macOS arm64 compilation. Its immut
 9ac0566 checkpoint also passes Nix sanitizers with 694/694 tests and
 ReleaseSafe/Windows/macOS compilation. Later backend slices require fresh gates.
 
-Still required: HTTP/3 file integration; static
+The [HTTP/3 backend](m1_file_http3.md) is integrated after independent review;
+the combined native suite passes 713/713. Matching combined gates remain open.
+
+Still required: static
 integration for files larger than the existing buffer; validators, HEAD,
 ranges and If-Range on streamed representations; integration of the pure
 Accept-Encoding selector; fresh `.gz`/`.br` sidecars with distinct validators

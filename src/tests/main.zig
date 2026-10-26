@@ -10,6 +10,7 @@ comptime {
     _ = @import("fuzz_main.zig");
     _ = @import("file_stream_tests.zig");
     _ = @import("file_stream_http2_tests.zig");
+    _ = @import("file_stream_http3_tests.zig");
     _ = @import("framework_tests.zig");
     _ = @import("helpers_tests.zig");
     _ = @import("http_tests.zig");
