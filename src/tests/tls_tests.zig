@@ -654,7 +654,7 @@ fn expect_socket_pattern(encrypted: bool) !void {
 }
 
 /// The generated certificate is only for this loopback correctness fixture.
-fn create_socket_client_context() !*c.SSL_CTX {
+pub fn create_socket_client_context() !*c.SSL_CTX {
     const context = c.SSL_CTX_new(c.TLS_method()) orelse return error.ClientContextCreationFailed;
     errdefer c.SSL_CTX_free(context);
     if (c.SSL_CTX_set_min_proto_version(context, c.TLS1_3_VERSION) != 1 or
@@ -697,7 +697,7 @@ fn read_socket_pattern(port: u16, encrypted: bool) !SocketRecordTrace {
 }
 
 /// Bounds partial writes of the small plaintext request independently of reads.
-fn write_socket_request(io: std.Io, handle: net.Socket.Handle, request: []const u8) !void {
+pub fn write_socket_request(io: std.Io, handle: net.Socket.Handle, request: []const u8) !void {
     var offset: usize = 0;
     for (0..16) |_| {
         if (offset == request.len) return;
@@ -737,7 +737,7 @@ fn capture_socket_pattern(io: std.Io, handle: net.Socket.Handle, ssl: ?*c.SSL, n
 }
 
 /// Preserve receive-timeout errors so the socket fixture can unwind normally.
-fn read_pattern_socket(handle: net.Socket.Handle, buffer: []u8) !usize {
+pub fn read_pattern_socket(handle: net.Socket.Handle, buffer: []u8) !usize {
     for (0..16) |_| {
         if (comptime builtin.os.tag == .windows) {
             const socket: c.SOCKET = @intCast(@intFromPtr(handle));
@@ -1686,7 +1686,7 @@ fn expect_h2_cluster_response(port: u16) !void {
 }
 
 /// Attaches a memory BIO pair to `ssl` and returns the network side.
-fn attach_client_bio(ssl: *c.SSL) !*c.BIO {
+pub fn attach_client_bio(ssl: *c.SSL) !*c.BIO {
     var ssl_bio: ?*c.BIO = null;
     var network_bio: ?*c.BIO = null;
     if (c.BIO_new_bio_pair(
@@ -1706,7 +1706,7 @@ fn set_cluster_client_timeout(handle: net.Socket.Handle) !void {
     return tcp.set_receive_timeout(handle, 5_000);
 }
 
-fn drive_client_handshake(
+pub fn drive_client_handshake(
     io: std.Io,
     handle: net.Socket.Handle,
     ssl: *c.SSL,
@@ -1727,7 +1727,7 @@ fn drive_client_handshake(
 }
 
 /// Drains ciphertext from a BIO to the socket.
-fn flush_cluster_bio(io: std.Io, handle: net.Socket.Handle, outgoing: *c.BIO) !void {
+pub fn flush_cluster_bio(io: std.Io, handle: net.Socket.Handle, outgoing: *c.BIO) !void {
     var buffer: [cluster_tls_bio_capacity]u8 = undefined;
     while (c.BIO_ctrl_pending(outgoing) > 0) {
         const pending: usize = @intCast(c.BIO_ctrl_pending(outgoing));
@@ -1765,7 +1765,7 @@ fn fill_cluster_bio(io: std.Io, handle: net.Socket.Handle, incoming: *c.BIO) !vo
     }
 }
 
-fn ssl_write_all(
+pub fn ssl_write_all(
     io: std.Io,
     handle: net.Socket.Handle,
     ssl: *c.SSL,

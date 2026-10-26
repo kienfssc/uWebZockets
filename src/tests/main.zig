@@ -27,6 +27,7 @@ comptime {
     _ = @import("shared_nothing_tests.zig");
     _ = @import("signal_tests.zig");
     _ = @import("tls_tests.zig");
+    _ = @import("tls_echo_tests.zig");
     _ = @import("udp_tests.zig");
     _ = @import("watch_tests.zig");
     _ = @import("ws_tests.zig");

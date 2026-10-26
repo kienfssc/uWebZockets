@@ -37,6 +37,29 @@ Compressed-file SHA-256:
 `e962c13a1916b40d3ea3142eee8803dafaa1f83a85c0302aec0ee61455c72130`.
 The runner owned its server PID and terminated/joined it on exit.
 
-ReleaseSafe test compilation and Windows compilation remain live, sequential
-steps in the same Nix-shell job. HTTP/3 cross-implementation, current-source
-sanitizer/target checks, and the later milestone gates remain open.
+The same frozen-lock Nix-shell job also exits 0 for
+[ReleaseSafe test compilation](release_safe.log.gz) and
+[Windows ReleaseSafe compilation](windows.log.gz), each 20/20 build steps.
+Commands are retained in release_safe.command.txt and windows.command.txt.
+The Windows layout assertion is evaluated at compile time; this is not native
+Windows runtime evidence.
+
+The [HTTP/3 archive](http3.tar.gz) retains all raw traces, client versions,
+results, logs, and qlog. The unchanged nested Nix compliance runner exits 0
+using curl 8.21.0, ngtcp2 1.22.1, nghttp3 1.15.0, and aioquic 1.3.0. Three
+malformed requests reset their streams while three siblings succeed; oversized
+QPACK resets with error 270 while its sibling succeeds; 300 soak requests are
+rejected and a fresh connection succeeds. Server cleanup exits normally. The
+archive SHA-256 is
+`41cb802c0f3441e8b14d1ef5fefa1069d541f55b27baf999548a55f13672e198`.
+
+The HTTP/3 command was the canonical nested-shell gate with frozen locks:
+
+```sh
+nix develop --no-update-lock-file . -c \
+  nix develop --no-update-lock-file path:./scripts/http3_compliance -c \
+  bash scripts/http3_compliance/run.sh
+```
+
+Current-source sanitizer/target checks, aarch64-macos compilation, native
+Windows runtime, and the later milestone gates remain open.

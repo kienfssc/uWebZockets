@@ -356,7 +356,7 @@ var server = try uz.Server.builder(init.io)
 
 | Value | Valid until |
 | --- | --- |
-| `Request` fields, route captures | Synchronous handler return, or async token completion |
+| `Request` fields, route captures | Synchronous handler return, or async token completion; see the HTTP/1 producer-body exception below |
 | WebSocket `message` slice | Callback return |
 | `ResponseView` from the client | Callback return, or `FetchStorage` lifetime |
 | `AsyncResponse` token | Completed exactly once; copyable |
@@ -366,6 +366,12 @@ var server = try uz.Server.builder(init.io)
 
 Slices always borrow connection storage. Copy into bounded application storage
 or use `clone` for work that outlives the callback.
+
+An armed HTTP/1 response producer pins the current `Request.body` storage until
+producer completion or cancellation. It can read that body on each producer
+callback without retaining a separate body slice. Return after successful
+`end_chunks`; request ownership may then be released. This body lifetime does
+not extend handler-local application data or route-capture scratch.
 
 ## Error handling
 

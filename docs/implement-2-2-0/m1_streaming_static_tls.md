@@ -2,10 +2,11 @@
 
 Status: in progress, 2026-10-26. M0 is complete.
 
-The latest socket-response checkpoint passes 681/681 native Debug tests and
+The latest true-echo checkpoint passes 684/684 native Debug tests and
 independent local review. The earlier immutable runtime checkpoint also passes
-canonical Nix sanitizer and h1spec gates. Current-source sanitizer/target checks,
-true incoming-body echo, static streaming, and sidecars still require work.
+canonical Nix sanitizer, target compilation, h1spec, and HTTP/3 gates.
+Current-source sanitizer/target checks, static streaming, and sidecars still
+require work.
 
 ## Scope
 
@@ -160,8 +161,10 @@ emissions on HTTP/1, real TLS BIOs, HTTP/2, and HTTP/3, including pending/drain,
 empty writes, bodyless refusal, source poisoning, fixed storage, and framed
 completion. Slice A retains close/reset and once-only cleanup coverage.
 
-Sanitizer and target gates remain open. Literal TLS socket saturation and the
-100 KiB record proof belong to M1-3; BIO coverage does not close them.
+Current-source sanitizer and target gates remain open. Literal TLS socket
+saturation and the 100 KiB record proof are recorded under M1-3.
+Still required: exercise pending HTTP/2 resets and a healthy sibling through
+real TLS write backpressure.
 
 ## M1-2: large static files and sidecars
 
@@ -197,10 +200,18 @@ plaintext delivery, at least seven decrypted application records, unchanged
 record/queue limits, real pressure, source poisoning, and scoped allocator
 proof. Its final 681/681 native suite and independent re-review pass.
 
-True incoming-body echo and the exact external adapter change still require
-their own proof. Official `8gbit` evidence or the plan's dated re-declaration
-also remains open. The generated GET response test preserves default request
-limits and establishes the large-response transport behavior.
+[The true POST echo report](m1_tls_echo.md) now records exact received bytes,
+fixed-length and chunked intake, keep-alive/pipelining, refusal boundaries,
+measured explicit intake storage, and the final 684/684 native suite. The
+default-cap probe justifies the plan's capacity exception; library defaults,
+write queue, and TLS record limits do not change. Request/body lifetime is
+documented and independently reviewed.
+
+Official 8gbit evidence is re-declared on 2026-10-26 with
+[immutable source evidence and restoration steps](evidence/httparena/README.md).
+The generated GET test remains separately labeled as response proof. The
+[dated roadmap](../roadmap.md) also records the
+reviewed kTLS boundary and conditional splice decision.
 
 M1 remains open until every original checklist item has implementation and
 matching evidence, or the original plan expressly permits a documented

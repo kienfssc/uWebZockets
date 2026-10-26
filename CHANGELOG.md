@@ -5,6 +5,10 @@ uses Semantic Versioning.
 
 ## [Unreleased]
 
+- Prove bounded 100 KiB TLS/plaintext producer responses and true POST echo,
+  including request-storage pinning; document the explicit intake capacity and
+  dated external profile, kTLS, and splice boundaries.
+
 - Add pure, constant-storage content-coding negotiation with explicit refusal
   handling, and correct the shared RFC 9110 qvalue fractional bounds.
 

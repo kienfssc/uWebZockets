@@ -126,6 +126,34 @@ a public API or a wire format.
 
 ## Deliberate boundaries
 
+### 2.2.0 decisions, 2026-10-26
+
+- S-5 official HttpArena 8gbit evidence is re-declared under the plan's explicit
+  exception. The external adapter still pins 1.8.0 and lacks the route and
+  subscription; this session has read-only access. Restore after the reviewed
+  source is available, the real POST echo adapter passes official validation,
+  and an authorized official run archives complete results. The
+  [source record and exact restoration steps](implement-2-2-0/evidence/httparena/README.md)
+  remain separate from local socket correctness proof.
+- S-3 kTLS integration stays with v3.5.0 SB-31. Pinned BoringSSL exposes
+  traffic-secret and sequence inspection, but the project has no verified
+  public TCP record-layer handoff covering queued records, control messages,
+  sequence ownership, and KeyUpdate. Retain the standalone caller-managed
+  helper, whose default version field is TLS 1.2; TCP server contexts remain
+  TLS 1.3 only. Restore through an ADR, audited epoch/key/IV handoff and
+  zeroization, real Linux interoperability, sanitizer, and performance evidence.
+  See [the secret inspection API](https://github.com/google/boringssl/blob/d3bf4795ad5b79d646cddf2fec687da5b9b502db/include/openssl/ssl.h#L6181),
+  [internal KeyUpdate ownership](https://github.com/google/boringssl/blob/d3bf4795ad5b79d646cddf2fec687da5b9b502db/ssl/tls13_both.cc#L680),
+  and [the kernel handoff contract](https://docs.kernel.org/networking/tls.html#tls-1-3-key-updates).
+  Buffered file delivery needs no handshake, cipher, ALPN, pin, or key change.
+- S-3 splice remains conditional on measured benefit. No splice experiment or
+  performance improvement is claimed. The existing plaintext sendfile path
+  stays in place. Revisit only with a controlled candidate/baseline static
+  workload and retained raw evidence showing a repeatable benefit within the
+  repository's performance and lifecycle constraints.
+
+### Established boundaries
+
 These are decisions, not omissions. Each has a reason and, where relevant, the
 condition that would change it.
 
@@ -139,7 +167,7 @@ condition that would change it.
 | HTTP/2 caps at 8 concurrent streams and one WebSocket tunnel per connection | Stream and tunnel storage is connection-owned and carved from the slab. Raising the defaults requires specializing the connection type |
 | WebTransport is not live yet | ADR 0001 is accepted for implementation through the maintained lsquic fork, but the live path stays capability-gated until extended CONNECT, server-initiated unidirectional streams, reset-at, and the compliance gate land; see [ADR 0001](adr/0001-http3-datagram-and-webtransport.md) |
 | HTTP/3 does not advance the metrics registry | The engine has no registry handle without new plumbing through the transport; records are emitted instead |
-| kTLS is a standalone helper, not an integrated offload | The pinned BoringSSL has no kernel-TLS support, so the connection path cannot hand keys to the kernel. `uz.ktls` remains available to applications that manage their own records |
+| kTLS is a standalone helper, not an integrated offload | Secret and sequence inspection exists, but an audited TCP record-layer handoff covering control messages and KeyUpdate has not been established. `uz.ktls` remains available to applications that manage their own records |
 | MemorySanitizer does not instrument Zig code | Permanent decision dated 2026-10-19: Zig 0.16 emits no MSan instrumentation, so the MSan gate covers the pinned C/C++ dependency boundary ([CI_CD_PIPELINE.md](../CI_CD_PIPELINE.md#memorysanitizer-contract-permanent-2026-10-19)) |
 | BSD targets have no runtime CI | No hosted GitHub runners exist for the BSDs; the shared build graph is compiled but not executed in CI |
 | Windows runtime is gated on native CI | The accept overlay and queued-close fixes landed in 1.9.0 and the workflow now runs the test suite, but official support starts only when that job is green for the release commit; see [Windows runtime blocker details](#windows-runtime-blocker-details) and [ADR 0004](adr/0004-windows-iocp-accept-and-queued-close.md). No Windows binaries are published |
