@@ -79,3 +79,20 @@ payload nor credit. No fixed queue or flow-control window grows for this matrix.
 
 The [slice B report](m1_response_matrix.md) records the corrected 678/678
 combined native run, initial fixture failure, and independent re-review.
+
+## Bounded file-transfer contract
+
+[ADR 0010](../adr/0010-bounded-file-streaming.md) is accepted after architectural
+review and independent ownership/framing review. It adds a typed file source,
+one transport-owned transfer slot per response, borrowed worker-local route
+scratch, and exact known-length framing. The caller's response becomes ended;
+an internal streaming view owns subsequent file writes. Returned errors retain
+caller descriptor ownership, while accepted transfers close once through the
+transport teardown paths.
+
+The review resolved terminal caller state, zero-credit completion, bodyless
+framing, permanent zero capacity, scratch aliasing/reentrancy, default-null
+target callbacks, positive short reads, and HTTP/2 connection-close cleanup.
+Implementation proceeds through HTTP/1 TLS, HTTP/2, HTTP/3, then static
+selection, with independent review between slices. No file-transfer source
+implementation has landed with this contract record.
