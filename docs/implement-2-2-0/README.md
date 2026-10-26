@@ -30,6 +30,7 @@ The [HTTP/3 backend](m1_file_http3.md) records copied partial-write ownership.
 [Complete-field coding negotiation](m1_encoding_fields.md) prepares sidecar selection.
 [Static delivery](m1_static_streaming.md) records real 100 MiB TLS/H2 downloads.
 [Opt-in sidecars](m1_static_sidecars.md) record fresh representation selection and 752/752 native tests.
+[The public interop matrix](m1_static_interop.md) records its harness and live-result boundary.
 
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
