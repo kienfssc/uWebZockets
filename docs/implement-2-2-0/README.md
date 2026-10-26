@@ -12,7 +12,7 @@ results and release actions are recorded only when actually performed.
 | Milestone | Scope | State | Report |
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
-| M1 | Response streaming, static delivery, TLS payloads | In progress | [Streaming, static, TLS](m1_streaming_static_tls.md) |
+| M1 | Response streaming, static delivery, TLS payloads | Complete locally; external profiles re-declared | [Streaming, static, TLS](m1_streaming_static_tls.md) |
 | M2 | Request streaming and incremental multipart | Compatibility revision; isolated draft | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |

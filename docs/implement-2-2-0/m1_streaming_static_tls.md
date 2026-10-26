@@ -1,14 +1,16 @@
 # M1: streaming, static assets, and TLS payload closure
 
-Status: in progress, 2026-10-26. M0 is complete.
+Status: implementation and local verification complete, 2026-10-26.
+Official static/8gbit performance claims remain explicitly re-declared with
+source evidence, owners, and restoration criteria.
 
-The true-echo checkpoint passes 684/684 native Debug tests, canonical Nix
-sanitizers, ReleaseSafe/Windows compilation, and independent local review.
-Its macOS compilation exposed an incorrect cross-platform slab expectation.
-The file-streaming slice corrects that exact-layout test and passes 694/694
-native tests plus macOS arm64 compilation. The earlier immutable runtime
-checkpoint also passes h1spec and HTTP/3 gates. Static streaming, sidecars,
-and verification of later runtime changes still require work.
+Bounded file delivery, fresh sidecars, selected metadata/ranges, response
+backpressure, and true 100 KiB TLS echo are implemented and reviewed. The
+final native/sanitizer suites pass 752/752; five exact 100 MiB client bodies,
+real decoding, protocol gates, portability compilation, fuzz, MSan C-boundary,
+and clean package checks are archived below. This is not a release,
+foreign-runtime, official-profile, or global-allocation claim. Earlier sections
+retain the individual checkpoint history; the closure table records final scope.
 
 ## Scope
 
@@ -163,8 +165,8 @@ emissions on HTTP/1, real TLS BIOs, HTTP/2, and HTTP/3, including pending/drain,
 empty writes, bodyless refusal, source poisoning, fixed storage, and framed
 completion. Slice A retains close/reset and once-only cleanup coverage.
 
-The combined file-backend checkpoint passes sanitizer and target compilation
-as recorded below; later static selection needs matching final gates. Literal
+The combined file-backend checkpoint and final static selection pass sanitizer
+and target compilation as recorded in the closure archive below. Literal
 TLS saturation and the 100 KiB record proof are under M1-3. The
 [HTTP/2 file backend](m1_file_http2.md) records pending reset isolation and a
 healthy sibling through real TLS write backpressure.
@@ -187,7 +189,7 @@ erase an explicit refusal. The combined native suite passes 678/678, LLVM smoke
 passes all 11 build steps, and the requested 100K fuzz run completes 103,733
 executions with exit 0. The [package consumer](evidence/m1_e/package.log) passes
 16/16 ReleaseSafe build steps. Current-source sanitizer results remain open.
-This slice does not connect sidecar selection to static-file responses.
+That negotiation-only checkpoint precedes the later static integration below.
 
 The [bounded file-streaming report](m1_file_streaming.md) records the first
 HTTP/1 plaintext/TLS slice, ownership tests, and target-layout correction.
@@ -195,7 +197,8 @@ The [HTTP/2 backend](m1_file_http2.md) adds real TLS reset/healthy-sibling
 pressure proof and passes 705/705 native tests after review corrections.
 The earlier H1 slice passes 694/694 tests and macOS arm64 compilation. Its immutable
 9ac0566 checkpoint also passes Nix sanitizers with 694/694 tests and
-ReleaseSafe/Windows/macOS compilation. Later backend slices require fresh gates.
+ReleaseSafe/Windows/macOS compilation. The final combined archive below
+supersedes those earlier verification limits.
 
 The [HTTP/3 backend](m1_file_http3.md) is integrated after independent review;
 the combined native suite passes 713/713. Its immutable ee4bf1c checkpoint also
@@ -207,9 +210,10 @@ predate static selection and do not establish live static delivery.
 including exact 100 MiB TLS HTTP/1 and HTTP/2 downloads, metadata, and ranges.
 [Opt-in sidecars](m1_static_sidecars.md) now add complete-field selection,
 coding-specific validators, encoded ranges, Vary, and freshness/confinement
-coverage, with 752/752 native tests. Large plaintext/live-H3 proof, actual client
-decoding, final-source gates, and external static-profile evidence remain open. The dated kTLS and conditional splice boundaries are below
-and in the roadmap.
+coverage, with 752/752 native tests. The [full live client matrix](m1_static_interop.md) and
+[final checkpoint gates](evidence/m1_final/README.md) now close local acceptance.
+Official static-profile claims remain dated and re-declared below. The kTLS
+and conditional splice boundaries are below and in the roadmap.
 
 ## M1-3: 100 KiB TLS echo
 
@@ -231,7 +235,43 @@ The generated GET test remains separately labeled as response proof. The
 [dated roadmap](../roadmap.md) also records the
 reviewed kTLS boundary and conditional splice decision.
 
-M1 remains open until every original checklist item has implementation and
-matching evidence, or the original plan expressly permits a documented
-re-declaration. The user's instruction keeps work in the original repository's
+M1 closure requires each original checklist item to have matching implementation
+and evidence, or a documented re-declaration permitted by the original plan.
+The final closure record below supplies that mapping. The user's instruction keeps work in the original repository's
 feature branch for later manual review; no fork or PR workflow is required.
+
+
+## M1 closure, 2026-10-26
+
+Implementation and local verification are complete. External performance
+claims remain explicitly re-declared under the plan's dated-limit policy;
+this does not establish official benchmark activation or release readiness.
+
+| Requirement | Result and evidence |
+| --- | --- |
+| S-1 response transport matrix | Existing API preserved; 1-byte/16 KiB/64 KiB emissions, pending/drain, fail-closed completion, reset/cleanup and bodyless cases; real TLS H2 reset/sibling pressure in the file backend |
+| S-3/S-4 large static delivery | Bounded owned file transfers on H1/TLS/H2/H3; sidecar freshness/confinement, selected validators/ranges, complete-field coding and WOFF2 MIME; [slice reports](m1_static_sidecars.md) |
+| Live file/sidecar matrix | Five exact 100 MiB client bodies across plain H1, TLS H1/H2, and H3 curl/aioquic; 84 small checks, real gzip/Brotli decoding, H3 sibling/reuse and clean owned teardown; [raw proof](m1_static_interop.md) |
+| S-5 TLS echo | True fixed/chunked POST input echoed exactly through the producer, 100 KiB/multi-record/output-pressure and scoped allocation tests; [echo report](m1_tls_echo.md) |
+| Required gates | Current db92019 native/SAN 752/752 and ReleaseSafe/Windows/macOS compilation; broad b2d2acb build, ReleaseFast, fuzz, LLVM, MSan, package and protocol gates; [checkpoint archive](evidence/m1_final/README.md) |
+| Official static profiles | Re-declared 2026-10-26, reassess 2026-11-02; immutable contracts, adapter/ALPN gaps, public recipe and required authorized saved-host runs retained in [the external record](evidence/httparena_static/README.md) |
+| Official 8gbit profile | Existing dated exception remains; [adapter/pin/access evidence and restoration](evidence/httparena/README.md), without a performance claim |
+| kTLS and splice | kTLS stays at the accepted SB-31 boundary; splice stays conditional on a repeatable designated-host benefit probe. No key-handoff integration, splice measurement, or measured-not-needed claim is invented; [dated roadmap](../roadmap.md) |
+
+The final gate archive records b2d2acb's 47-step default build, 752-test
+ASan/UBSan suite, 20-step native ReleaseSafe/ReleaseFast and foreign compilation,
+103,624 fuzz executions, 12-step LLVM object checks, 11-step smoke, 16-step
+MSan C-boundary smoke, 16-step public consumer and clean package filtering.
+h1spec passes 33/33; pinned ordinary HTTP/3 passes malformed/healthy-sibling,
+QPACK and 300-rejection checks; Autobahn matches 517 cases (514 OK and 3
+informational in both columns). The db92019 polish repeats sanitizers with
+752/752 and ReleaseSafe/Windows/macOS compilation. All exit zero, with distinct
+raw setup failures and intentional negative-case warnings preserved.
+
+Independent source and artifact reviews find no remaining actionable M1 issue.
+The final archives bind exact commits and scopes; foreign compilation is not
+runtime support, MSan is not Zig instrumentation, and correctness is not an
+official throughput/global-allocation claim. Default body/queue/record limits
+and dependency pins remain bounded as documented. M2 can now proceed through
+its compatibility revision and request/multipart implementation; M3 and the
+remaining release milestones retain their own open requirements.

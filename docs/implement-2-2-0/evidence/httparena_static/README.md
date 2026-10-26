@@ -27,7 +27,7 @@ the library. Actual official asset payloads were not downloaded/verified here.
 ## Authorized restoration recipe
 
 1. Publish a reviewed immutable original-repository source revision and use its
-   actual Zig package hash in the external adapter, preserving Zig0.16 and
+   actual Zig package hash in the external adapter, preserving Zig 0.16 and
    normal capacities. There is no fork, invented hash, or cache patch fallback.
 2. Register `app.static("/static", "/data/static", .{ .precompressed = true })`
    through normal startup on each serving App/worker. Preserve real mtimes,
@@ -60,7 +60,7 @@ saved designated-host artifacts meeting the original evidence contract.
 
 Independent review confirms the bindings, requirements, public adapter recipe,
 and dated scope. Its missing --save finding is corrected above and in the
-retained derived recipe. The local five100MiB client transfers and sidecar
+retained derived recipe. The local five 100 MiB client transfers and sidecar
 checks establish library correctness for their configuration, with no official
 profile or global-allocation inference.
 
