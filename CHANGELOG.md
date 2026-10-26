@@ -15,6 +15,9 @@ uses Semantic Versioning.
   does not close healthy sibling streams when the write queue is full. Reset
   storage is bounded by the configured stream limit and adds 80 bytes per
   connection at the default eight-stream capacity.
+- The Nix development shell fetches the pinned zon2nix compiler from its
+  maintainer's GitHub mirror, avoiding a fetch-time HTTP 403. The full commit,
+  NAR hash, and nested dependency graph are preserved.
 
 ## [2.1.6] - 2026-10-26
 

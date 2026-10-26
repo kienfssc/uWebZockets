@@ -122,6 +122,31 @@ to be pushed individually; the current GitHub account still lacks write access.
 
 The full M1 milestone is not closed by this first slice.
 
+### Canonical verification environment
+
+The official Nix 2.31.6 binary archive was verified against SHA-256
+`34fe86212dbca0854f687c868e95602067d297a09acfe6447f7cddf1735717b2`
+and [installed](evidence/environment/nix_install.log) without a daemon,
+channels, or shell-profile edits.
+
+The first canonical [sanitizer attempt](evidence/m1_a/nix_sanitizer.log)
+exited 1 during flake evaluation, before compilation: the nested zon2nix
+compiler URL at `git.jcollie.dev` returned HTTP 403. A direct git fetch
+reproduced it. The maintainer's existing GitHub mirror resolves to the same
+full commit `1a73bc5e8ae4d0223fefbd00afc58fe0b7f7e718` and
+[identical NAR hash](evidence/environment/nix_zig_mirror.json),
+`sha256-fjtjxWEofW5cbzXm3SqvjC2QZIbtp3lij2k8e1Jmj0w=`.
+
+`flake.nix` now overrides only that URL and explicitly retains the original
+`zon2nix/nixpkgs` follows relationship. The
+[regenerated lock](evidence/environment/nix_lock_repair.log) preserves every
+other node, nested relationship, commit, hash, timestamp, and revision count.
+All four zon views remain unchanged. Independent build/vendor review found
+no issues, and [frozen-lock shell evaluation](evidence/environment/nix_shell_evaluation.log)
+passed. Actual shell construction, `zig version`, and sanitizer execution
+still require their runtime results. The library remains on Zig 0.16.0;
+Zig 0.17.0 was already used only to build the existing generator tool.
+
 ### Remaining M1-1 acceptance
 
 - HTTP/1, real TLS, HTTP/2, and HTTP/3 matrix with logical 1-byte, 16 KiB, and

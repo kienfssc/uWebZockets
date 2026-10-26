@@ -6,6 +6,9 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     zig-overlay.url = "github:mitchellh/zig-overlay";
     zon2nix.url = "github:jcollie/zon2nix";
+    # The maintainer's GitHub mirror retains the same commit and NAR hash.
+    zon2nix.inputs.zig.url = "git+https://github.com/jcollie/zig-overlay.git?rev=1a73bc5e8ae4d0223fefbd00afc58fe0b7f7e718";
+    zon2nix.inputs.zig.inputs.nixpkgs.follows = "zon2nix/nixpkgs";
   };
 
   outputs = inputs @ {
