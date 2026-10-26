@@ -253,6 +253,10 @@ identity. Repeated codings use their minimum weight. The named
 input policy are recorded in [ADR 0009](adr/0009-static-content-coding.md).
 Sidecar file selection is not connected to `App.static` yet.
 
+`negotiate.select_encoding_headers(req.headers(), available)` applies the same
+rules to every matching field, including overflow headers. It preserves late
+refusals and absent/empty distinctions without copying field values.
+
 ## Request and response helpers
 
 The accepted [request-streaming design](adr/0008-request-body-streaming.md)

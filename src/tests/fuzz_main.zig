@@ -29,6 +29,9 @@ test "fuzz: protocol parsers preserve bounded state" {
             "session=abc; theme=dark; empty=; broken; =x",
             "br;q=0.8, gzip;q=1., identity;q=0, *;q=0",
             "gzip;q=1.0000, gzip;q=0, *;q=1",
+            "gzip;q=1, gzip;q=0, identity;q=0",
+            "*;q=0, gzip;q=1",
+            ", ,",
             // HPACK: RFC 7541 C.3 and C.4 request vectors, a table-size update,
             // a truncated literal, and a dynamic insert followed by an index.
             "\x82\x86\x84\x41\x0fwww.example.com",
@@ -71,14 +74,24 @@ fn fuzz_content_coding(smith: *std.testing.Smith) !void {
         .value(u8, 0xff, 1),
     }));
     const bytes = input[0..length];
+    // Only split at a list delimiter; splitting inside a token changes meaning.
+    const split = std.mem.indexOfScalar(u8, bytes, ',') orelse bytes.len;
+    const tail = if (split < bytes.len) bytes[split + 1 ..] else "";
     for (0..8) |mask| {
         const available = negotiate.EncodingAvailability{
             .identity = mask & 1 != 0,
             .gzip = mask & 2 != 0,
             .br = mask & 4 != 0,
         };
-        const chosen = negotiate.select_encoding(bytes, available) orelse continue;
-        try std.testing.expect(switch (chosen) {
+        const chosen = negotiate.select_encoding(bytes, available);
+        try std.testing.expectEqual(chosen, negotiate.select_encoding_headers(.{
+            .names = &.{ "Accept-Encoding", "x-other" },
+            .values = &.{ bytes[0..split], "*;q=0" },
+            .extra_names = &.{"aCcEpT-EnCoDiNg"},
+            .extra_values = &.{tail},
+        }, available));
+        const selected = chosen orelse continue;
+        try std.testing.expect(switch (selected) {
             .identity => available.identity,
             .gzip => available.gzip,
             .br => available.br,
@@ -93,6 +106,14 @@ fn fuzz_content_coding(smith: *std.testing.Smith) !void {
         blocked[0 .. refusal.len + length],
         .{ .gzip = true, .br = true },
     ));
+    for (0..2) |order| {
+        try std.testing.expectEqual(@as(?negotiate.Encoding, null), negotiate.select_encoding_headers(.{
+            .names = &.{"Accept-Encoding"},
+            .values = &.{if (order == 0) bytes else refusal},
+            .extra_names = &.{"accept-encoding"},
+            .extra_values = &.{if (order == 0) refusal else bytes},
+        }, .{ .gzip = true, .br = true }));
+    }
 }
 
 fn fuzz_http_query(smith: *std.testing.Smith) !void {

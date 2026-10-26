@@ -4,6 +4,7 @@
 //! scans the full header so a late refusal is never dropped. Neither allocates.
 
 const std = @import("std");
+const fetch = @import("fetch.zig");
 
 /// Maximum number of parsed Accept entries kept by `parse`.
 pub const max_entries = 16;
@@ -47,14 +48,34 @@ const EncodingWeights = struct {
 /// Unlisted identity scores 1000; ties prefer br, gzip, then identity.
 /// An absent field prefers identity. An empty field permits identity only.
 pub fn select_encoding(header: ?[]const u8, available: EncodingAvailability) ?Encoding {
-    if (header == null and available.identity) return .identity;
-
     var weights = EncodingWeights{};
-    if (header) |value| {
-        var entries = std.mem.splitScalar(u8, value, ',');
-        while (entries.next()) |entry| merge_encoding_weight(&weights, entry);
+    if (header) |value| merge_encoding_field(&weights, value);
+    return choose_encoding(weights, header != null, available);
+}
+
+/// Applies the single-field rules to every Accept-Encoding field, including extras.
+/// RFC 9110 sections 5.3 and 12.5.3 combine field lines as comma-separated lists.
+/// Scans caller-bounded storage without copying fields or retaining slices.
+pub fn select_encoding_headers(headers: fetch.HeadersView, available: EncodingAvailability) ?Encoding {
+    var weights = EncodingWeights{};
+    var field_present = false;
+    var entries = headers.entries();
+    while (entries.next()) |entry| {
+        if (!std.ascii.eqlIgnoreCase(entry.name, "accept-encoding")) continue;
+        field_present = true;
+        merge_encoding_field(&weights, entry.value);
     }
-    const wildcard = weights.wildcard orelse (if (header == null) @as(u16, 1000) else 0);
+    return choose_encoding(weights, field_present, available);
+}
+
+fn merge_encoding_field(weights: *EncodingWeights, value: []const u8) void {
+    var entries = std.mem.splitScalar(u8, value, ',');
+    while (entries.next()) |entry| merge_encoding_weight(weights, entry);
+}
+
+fn choose_encoding(weights: EncodingWeights, field_present: bool, available: EncodingAvailability) ?Encoding {
+    if (!field_present and available.identity) return .identity;
+    const wildcard = weights.wildcard orelse (if (field_present) @as(u16, 0) else 1000);
     const identity = weights.identity orelse (if (weights.wildcard == 0) @as(u16, 0) else 1000);
     const qualities = [_]u16{ weights.br orelse wildcard, weights.gzip orelse wildcard, identity };
     const enabled = [_]bool{ available.br, available.gzip, available.identity };

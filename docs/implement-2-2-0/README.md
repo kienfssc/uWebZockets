@@ -27,6 +27,7 @@ M1 slice reports: [response transport matrix](m1_response_matrix.md) and
 The next slice records [bounded file streaming](m1_file_streaming.md).
 Its [HTTP/2 backend](m1_file_http2.md) includes real TLS pressure isolation.
 The [HTTP/3 backend](m1_file_http3.md) records copied partial-write ownership.
+[Complete-field coding negotiation](m1_encoding_fields.md) prepares sidecar selection.
 
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
