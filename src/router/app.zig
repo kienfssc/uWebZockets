@@ -776,7 +776,7 @@ pub fn configured_app_with_route_params(
             }
 
             var route_buffer: [2048]u8 = undefined;
-            const base = if (prefix.len > 1) std.mem.trimRight(u8, prefix, "/") else "";
+            const base = if (prefix.len > 1) std.mem.trimEnd(u8, prefix, "/") else "";
             const route = std.fmt.bufPrint(&route_buffer, "{s}/*path", .{base}) catch {
                 return error.InvalidRoutePath;
             };

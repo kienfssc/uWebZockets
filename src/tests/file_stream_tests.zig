@@ -38,14 +38,14 @@ const FileIo = struct {
 };
 
 /// Stable native socket permits real teardown even when an assertion fails.
-const TestConnection = struct {
+pub const TestConnection = struct {
     loop: support.loop.Loop = undefined,
     connection: support.tcp.TcpConnection = undefined,
     listener: support.tcp.TcpServer = undefined,
     peer: ?net.Stream = null,
     accepted: bool = false,
 
-    fn init(state: *TestConnection, ring: []u8) !void {
+    pub fn init(state: *TestConnection, ring: []u8) !void {
         state.loop = try support.loop.init();
         errdefer support.loop.deinit(&state.loop);
         state.listener = try support.tcp.init_server("127.0.0.1", 0, accept, state);
@@ -87,7 +87,7 @@ const TestConnection = struct {
         state.accepted = true;
     }
 
-    fn deinit(state: *TestConnection) void {
+    pub fn deinit(state: *TestConnection) void {
         support.tcp.close_connection(&state.connection);
         support.tcp.close_server(&state.listener, &state.loop);
         state.loop.xev_loop.run(.until_done) catch @panic("file fixture close did not drain");

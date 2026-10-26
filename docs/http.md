@@ -241,7 +241,9 @@ validation, cache control, and one RFC 9110 byte range. `If-None-Match` handles
 ETag or Last-Modified value before a range is applied. Plaintext `GET` and
 `HEAD` responses stream the file with the kernel `sendfile` boundary
 (`Response.send_file`), so assets are not capped by the per-route file buffer.
-TLS, HTTP/2, and HTTP/3 remain on the bounded buffered path.
+TLS, HTTP/2, and HTTP/3 stream through the handler's stable scratch, so whole
+files need not fit the route buffer. Legacy custom targets without file
+callbacks retain a bounded small-file fallback.
 
 `negotiate.select_encoding(header, available)` is a pure helper for choosing
 among caller-verified identity, gzip, and br representations. It scans the full

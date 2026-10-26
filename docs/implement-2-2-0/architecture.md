@@ -95,4 +95,34 @@ framing, permanent zero capacity, scratch aliasing/reentrancy, default-null
 target callbacks, positive short reads, and HTTP/2 connection-close cleanup.
 Implementation proceeds through HTTP/1 TLS, HTTP/2, HTTP/3, then static
 selection, with independent review between slices. No file-transfer source
-implementation has landed with this contract record.
+implementation had landed when this contract was accepted. The H1, H2, and H3
+backends are now implemented; the combined native suite passes 713/713.
+
+## Static integration decisions
+
+The next slices follow the existing static handler, confined opener, cache
+helpers, and accepted file interface. Add Options.precompressed=false so default
+identity behavior stays compatible. All-field Accept-Encoding negotiation uses
+the existing HeadersView and shared scalar weight accumulation, without a copied
+header buffer or a new entry bound.
+
+Prefer send_file, then stream_file with the stable handler scratch. Only
+FileStreamingUnsupported permits the legacy bounded small-file fallback.
+WouldBlock and other errors retain caller ownership and propagate. Real framed
+adapters use transport-owned files; custom default-null targets retain their
+old small response behavior.
+
+Probe confined regular source metadata first. Missing/stale/nonregular,
+symlink-refused, or suffix-overflow sidecars are unavailable; unexpected I/O
+errors propagate. Choose the representation before validators/ranges, preserve
+the original MIME type, distinguish coding ETags, and use selected length/mtime.
+Enabled responses vary on Accept-Encoding, including identity and 304; ranges
+address encoded bytes. Close every unselected descriptor and transfer the
+selected descriptor once.
+
+Header aggregation and basic static streaming have independent production
+files and may proceed separately. Sidecar selection follows both. Then verify
+the actual route with 100 MB bounded downloads on all four transport cases,
+metadata/ownership/adversarial cases, final source gates, and truthful external
+profile evidence. No new filesystem abstraction or representation manager is
+needed. The architect's plan and root compatibility decisions define this scope.

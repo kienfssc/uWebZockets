@@ -134,6 +134,10 @@ separately after its ownership and measured benefit are established.
 ## Static integration
 
 Keep send_file first for plaintext and use stream_file for framed delivery.
+If a legacy custom target has no file callback, only FileStreamingUnsupported
+permits its existing bounded small-file fallback. Do not convert WouldBlock or
+other errors into a buffered success. Add Options.precompressed=false for
+opt-in sidecars, preserving default identity behavior.
 The static handler owns its fixed scratch; each in-flight descriptor belongs
 to its transport slot. Evaluate sidecars only through the existing confined,
 symlink-refusing opening path. Fresh regular sidecars have mtime at least that

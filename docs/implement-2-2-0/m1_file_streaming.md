@@ -1,7 +1,8 @@
 # M1: bounded file streaming
 
 Status: HTTP/1, HTTP/2, and HTTP/3 file backends implemented and independently
-reviewed, 2026-10-26. Static delivery and combined final gates remain open.
+reviewed, 2026-10-26. Basic static delivery is integrated; sidecars and final
+combined gates remain open.
 
 ## HTTP/1 ownership and framing
 
@@ -100,6 +101,7 @@ The HTTP/3 slice adds persistent transfer state and retains accepted bytes in
 its existing output storage through partial writes. The integrated native suite
 passes 713/713; combined sanitizers, platforms, and live client gates follow.
 
-Then connect static delivery, select fresh confined gzip/br sidecars, and apply
-validators and ranges to the selected representation. No current evidence
-claims those remaining slices are implemented.
+[Basic static delivery](m1_static_streaming.md) now passes 730/730 native tests,
+including real 100 MiB TLS HTTP/1 and HTTP/2 downloads. Next select fresh confined
+gzip/br sidecars and apply validators/ranges to that representation. Large
+plaintext/live-H3 static transfers and final-source gates remain open.

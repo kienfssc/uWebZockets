@@ -199,13 +199,13 @@ ReleaseSafe/Windows/macOS compilation. Later backend slices require fresh gates.
 The [HTTP/3 backend](m1_file_http3.md) is integrated after independent review;
 the combined native suite passes 713/713. Matching combined gates remain open.
 
-Still required: static
-integration for files larger than the existing buffer; validators, HEAD,
-ranges and If-Range on streamed representations; integration of the pure
-Accept-Encoding selector; fresh `.gz`/`.br` sidecars with distinct validators
-and Vary; confinement and missing/stale-sidecar coverage; external static
-profile artifacts. The dated kTLS and conditional splice boundaries are
-recorded below and in the roadmap.
+[Basic static integration](m1_static_streaming.md) passes 730/730 native tests,
+including exact 100 MiB TLS HTTP/1 and HTTP/2 downloads, metadata, and ranges.
+Still required: sidecar availability/selection through the all-field helper,
+coding-specific validators and encoded ranges, Vary, stale/missing/confinement
+coverage, large plaintext/live-H3 proof, final-source gates, and external static
+profile evidence. The dated kTLS and conditional splice boundaries are below
+and in the roadmap.
 
 ## M1-3: 100 KiB TLS echo
 

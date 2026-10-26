@@ -11,6 +11,8 @@ uses Semantic Versioning.
   framing, flow-control bounds, and TLS reset isolation under output pressure.
 - Add HTTP/3 known-length file responses with copied partial-write storage and
   once-only descriptor cleanup across completion, faults, resets, and reuse.
+- Stream large static files through bounded framed transports, retain legacy
+  small custom-target fallback, and fix App.static's Zig 0.16 trim API call.
 
 - Prove bounded 100 KiB TLS/plaintext producer responses and true POST echo,
   including request-storage pinning; document the explicit intake capacity and
