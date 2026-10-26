@@ -25,6 +25,7 @@ M1 slice reports: [response transport matrix](m1_response_matrix.md) and
 [100 KiB socket response proof](m1_tls_payload.md) and
 [true POST echo](m1_tls_echo.md).
 The next slice records [bounded file streaming](m1_file_streaming.md).
+Its [HTTP/2 backend](m1_file_http2.md) includes real TLS pressure isolation.
 
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,

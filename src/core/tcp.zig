@@ -145,6 +145,8 @@ pub const TcpConnection = struct {
     // until `begin_response` succeeds. Completion logs read it before the
     // terminal frame releases the slot.
     h2_response_status: [max_http2_streams]u16 = .{0} ** max_http2_streams,
+    h2_files: [max_http2_streams]file_transfer.FileTransfer = .{file_transfer.FileTransfer{}} ** max_http2_streams,
+    h2_file_stream_ids: [max_http2_streams]u32 = .{0} ** max_http2_streams,
 
     // One wheel node per connection for keep-alive/header deadlines and the
     // parking slots used by deferred responses. All storage is in the pooled
@@ -690,6 +692,7 @@ pub const TcpConnection = struct {
             .finish_fn = finish_http2_response,
             .abort_fn = abort_http2_response,
             .begin_stream_fn = begin_http2_stream,
+            .stream_file_fn = begin_http2_file,
             .compression_pool = self.http_compression,
         } } };
         const method = radix.HttpMethod.parse(request.method);
@@ -924,6 +927,62 @@ pub const TcpConnection = struct {
         return self.step_http2_stream(index) == .done;
     }
 
+    /// Header acceptance is the ownership boundary; later faults reset only this stream.
+    fn begin_http2_file(
+        context: *anyopaque,
+        stream_id: u32,
+        status: []const u8,
+        headers: []const u8,
+        source: http_response.FileSource,
+    ) anyerror!void {
+        const self: *TcpConnection = @ptrCast(@alignCast(context));
+        if (self.closing or self.close_when_drained) return error.ConnectionClosed;
+        const index = self.h2.connection.streams.find(stream_id) orelse
+            return error.StreamClosed;
+        if (self.h2_stream_producers[index] != null or self.h2_files[index].file != null) {
+            return error.StreamAlreadyActive;
+        }
+        const code = http_response.status_code(status) orelse return error.InvalidStatus;
+        const head = std.mem.eql(u8, self.h2.requests[index].method, "HEAD");
+        const target = self.http2_response_target(stream_id);
+        self.begin_write_batch();
+        defer self.end_write_batch();
+        try self.h2.begin_file_response(stream_id, status, headers, source.length, self.http2_callbacks());
+        if (head or source.length == 0) {
+            source.file.close(source.io);
+            if (target) |view| log_request(self, view.method, view.path, code);
+            return;
+        }
+        self.h2_response_status[index] = code;
+        self.h2_files[index] = .{
+            .io = source.io,
+            .file = source.file,
+            .buffer = source.buffer,
+            .offset = source.offset,
+            .remaining = source.length,
+        };
+        self.h2_file_stream_ids[index] = stream_id;
+        self.h2_stream_producer_contexts[index] = &self.h2_files[index];
+        self.h2_stream_producers[index] = file_transfer.produce;
+        self.h2_stream_producer_close[index] = false;
+        _ = self.step_http2_stream(index);
+    }
+
+    fn http2_file_chunk_limit(self: *TcpConnection, index: u16) usize {
+        const credit = @min(self.h2.connection.connection_send_window, self.h2.connection.streams.send_windows[index]);
+        if (credit <= 0) return 0;
+        var free = self.write_queue.len - self.write_len;
+        if (self.ssl != null) {
+            const bio = self.network_bio orelse return 0;
+            const pending: usize = @intCast(c.BIO_ctrl_pending(bio));
+            free -|= pending;
+        }
+        return @min(
+            @as(usize, @intCast(credit)),
+            @min(self.h2.data_frame_capacity(self.http2_callbacks()), http2_frame_payload_capacity(free, self.ssl != null)),
+        );
+    }
+
     /// Advances one armed HTTP/2 producer; a producer error resets its stream.
     fn step_http2_stream(self: *TcpConnection, index: u16) http_response.StreamStatus {
         const producer = self.h2_stream_producers[index] orelse return .done;
@@ -933,10 +992,26 @@ pub const TcpConnection = struct {
         }
         const producer_context = self.h2_stream_producer_contexts[index];
         const stream_id = self.h2.connection.streams.stream_ids[index];
+        const owned_file = self.h2_files[index].file != null;
+        if (owned_file and self.h2_file_stream_ids[index] != stream_id) {
+            self.clear_http2_producer(index);
+            return .done;
+        }
         if (self.closing or self.close_when_drained) {
             self.clear_http2_producer(index);
             return .done;
         }
+
+        if (owned_file) {
+            self.h2_files[index].chunk_limit = self.http2_file_chunk_limit(index);
+            self.begin_write_batch();
+        }
+        defer if (owned_file) {
+            // One bounded read can yield before filling the ring. Keep a real
+            // completion queued so direct flushing cannot strand its next read.
+            self.arm_write();
+            self.end_write_batch();
+        };
 
         var response = Response{
             .target = .{ .http2 = .{
@@ -981,6 +1056,8 @@ pub const TcpConnection = struct {
         self.h2_stream_producers[index] = null;
         self.h2_stream_producer_contexts[index] = undefined;
         self.h2_stream_producer_close[index] = false;
+        self.h2_file_stream_ids[index] = 0;
+        file_transfer.close(&self.h2_files[index]);
     }
 
     fn arm_http2_async(
@@ -2066,6 +2143,7 @@ pub fn close_connection(conn: *TcpConnection) void {
     conn.cancel_timers();
     conn.async_response_state.cancel();
     for (&conn.h2_async_states) |*state| state.cancel();
+    for (0..max_http2_streams) |index| conn.clear_http2_producer(@intCast(index));
 
     if (conn.ws.initialized) conn.ws.deinit();
     conn.release_file_body();

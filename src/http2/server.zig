@@ -805,6 +805,52 @@ pub fn server_session(comptime max_streams: usize) type {
             self.stream_write_retry_required[index] = false;
         }
 
+        /// Commits known-length framing atomically; HEAD and empty files end in HEADERS.
+        pub fn begin_file_response(
+            self: *Self,
+            stream_id: u32,
+            status: []const u8,
+            raw_headers: []const u8,
+            length: u64,
+            callbacks: Callbacks,
+        ) !void {
+            const index = self.connection.streams.find(stream_id) orelse
+                return error.StreamClosed;
+            if (self.response_started[index]) return error.ResponseAlreadyStarted;
+            switch (self.connection.streams.states[index]) {
+                .open, .half_closed_remote => {},
+                else => return error.StreamClosed,
+            }
+            const code = parse_status(status) orelse return error.InvalidStatus;
+            if (status_forbids_body(code)) return error.BodyNotAllowed;
+            const method = self.requests[index].method;
+            if (code >= 200 and code < 300 and std.mem.eql(u8, method, "CONNECT")) {
+                return error.BodyNotAllowed;
+            }
+            const terminal = length == 0 or std.mem.eql(u8, method, "HEAD");
+            if (!terminal and self.data_frame_capacity(callbacks) == 0) {
+                return error.ResponseDataTooLarge;
+            }
+            var content_length_buffer: [24]u8 = undefined;
+            const field_count = try response_fields(
+                raw_headers,
+                length,
+                true,
+                self.response_fields,
+                self.lowercase_names,
+                &content_length_buffer,
+            );
+            const block = try hpack.encode_response(
+                code,
+                self.response_fields[0..field_count],
+                self.response_encode,
+            );
+            try self.send_headers(stream_id, block, terminal, callbacks);
+            self.response_started[index] = true;
+            self.stream_write_retry_required[index] = false;
+            if (terminal) try self.finish_local(index, callbacks);
+        }
+
         /// Writes one atomic streaming DATA frame within transport and flow credit.
         ///
         /// On error no payload bytes or flow credit are committed. Retry the same
@@ -1836,7 +1882,7 @@ fn parse_content_length(value: []const u8) !usize {
 
 fn response_fields(
     raw_headers: []const u8,
-    body_length: usize,
+    body_length: u64,
     include_content_length: bool,
     fields: []hpack.Header,
     lowercase_names: []u8,
@@ -1873,7 +1919,11 @@ fn response_fields(
         const value = std.mem.trim(u8, line[colon + 1 ..], " \t");
         if (std.mem.eql(u8, name, "content-length")) {
             if (has_content_length or !include_content_length) return error.InvalidHeaders;
-            const declared_length = parse_content_length(value) catch
+            if (value.len == 0) return error.InvalidHeaders;
+            for (value) |byte| {
+                if (!std.ascii.isDigit(byte)) return error.InvalidHeaders;
+            }
+            const declared_length = std.fmt.parseUnsigned(u64, value, 10) catch
                 return error.InvalidHeaders;
             if (declared_length != body_length) return error.InvalidHeaders;
             has_content_length = true;

@@ -124,8 +124,9 @@ file without reading; an empty file also completes without body reads. Bodyless
 statuses and successful CONNECT responses are refused before ownership changes.
 The response uses Content-Length and raw file bytes, without chunk delimiters.
 
-HTTP/2 and HTTP/3 adapters are still being connected on this feature branch;
-their current targets return FileStreamingUnsupported before accepting a file.
+HTTP/2 also supports bounded file responses with per-stream file ownership and
+both flow-control windows. HTTP/3 integration is still pending; that target
+returns FileStreamingUnsupported before accepting a file.
 Plaintext send_file remains the kernel path. App.static integration follows
 separately. The ownership and framing decision is [ADR 0010](adr/0010-bounded-file-streaming.md).
 

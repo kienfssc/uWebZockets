@@ -7,6 +7,8 @@ uses Semantic Versioning.
 
 - Add bounded Content-Length file streaming for HTTP/1, including TLS, with
   caller-provided scratch and transport-owned descriptor cleanup.
+- Extend bounded file responses to HTTP/2 with per-stream ownership, exact
+  framing, flow-control bounds, and TLS reset isolation under output pressure.
 
 - Prove bounded 100 KiB TLS/plaintext producer responses and true POST echo,
   including request-storage pinning; document the explicit intake capacity and
