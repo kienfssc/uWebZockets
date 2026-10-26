@@ -191,8 +191,9 @@ This slice does not connect sidecar selection to static-file responses.
 The [bounded file-streaming report](m1_file_streaming.md) records the first
 HTTP/1 plaintext/TLS slice, ownership tests, and target-layout correction.
 Its corrected final suite passes 694/694 native tests and 20/20 macOS arm64
-compilation steps, with no remaining local review findings. Sanitizer and
-Windows verification of this file slice remain open.
+compilation steps, with no remaining local review findings. Its immutable
+9ac0566 checkpoint also passes Nix sanitizers with 694/694 tests and
+ReleaseSafe/Windows/macOS compilation. Later backend slices require fresh gates.
 
 Still required: HTTP/2/HTTP/3 file ownership and exact-length framing; static
 integration for files larger than the existing buffer; validators, HEAD,

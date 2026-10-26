@@ -48,6 +48,13 @@ artifact-only reviewer independently validates their output assertions and
 checksums, rather than independently recovering those process exit codes.
 This slice reuses those runs and does not claim new protocol runs.
 
+The later file checkpoint 9ac0566f1af87f50eebe56be6bd605f1adc671f3 has a
+[fresh h1spec record](evidence/m1_c_h1/frozen_verification/h1spec/README.txt):
+33/33 passes with dedicated build, runner, gate, and harness-termination statuses,
+plus exact owned-listener evidence. The dependency pins remain unchanged. This
+new run has recoverable statuses; it does not rewrite the earlier artifacts or
+claim a new HTTP/3 run.
+
 LSQ-001, LSQ-002, and H1S-001 remain in the ledger. Final WebTransport pins and
 fresh final-source gates remain separate requirements.
 

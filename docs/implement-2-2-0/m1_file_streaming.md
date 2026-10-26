@@ -77,8 +77,19 @@ measurement preserves strict equality for each layout. The corrected full
 ReleaseSafe compilation steps, exit 0, on the same final bytes as native.
 Formatting, conventions, release metadata, documentation, the online fork
 check, and graph refresh also pass. The graph retains its documented partial
-C-header extraction warning. Current-source sanitizers, Windows compilation,
-and h1spec evidence remain integration work.
+C-header extraction warning.
+
+The clean 9ac0566f1af87f50eebe56be6bd605f1adc671f3 checkpoint subsequently
+passes canonical Nix ASan/UBSan/leak checks with 694/694 tests, plus ReleaseSafe,
+Windows, and macOS arm64 compilation with 20/20 steps each. All exits are 0.
+[The frozen evidence](evidence/m1_c_h1/frozen_verification/SHA256SUMS) retains
+the driver, launcher, exact commands, raw output, separate saved statuses, and
+clean source identity. Its eight source-file hashes match the pre-commit
+snapshot. The same checkpoint's fresh default ReleaseSafe build passes 47/47
+steps and [h1spec](evidence/m1_c_h1/frozen_verification/h1spec/README.txt) passes
+33/33 with runner/gate exits 0. Its driver verifies ownership of the listener
+and records intentional SIGTERM termination as 143; this is not a graceful
+shutdown claim. These results verify this checkpoint, not later H2/H3 work.
 
 ## Remaining integration
 
