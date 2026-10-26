@@ -42,7 +42,9 @@ code, commands, counts, and scope. No global allocation/throughput claim is made
 
 ## Remaining closure
 
-Add opt-in fresh confined sidecars, distinct validators, encoded ranges, and
-all-field quality negotiation. Complete large plaintext and live H3 static
-downloads and final-source sanitizer/platform/package/fuzz/protocol gates.
-Local correctness is separate from official static-profile performance evidence.
+[Opt-in sidecars](m1_static_sidecars.md) now provide fresh confined selection,
+distinct validators, encoded ranges, and all-field negotiation. The
+[full client matrix](m1_static_interop.md) completes large plaintext/live-H3
+transfers and real gzip/Brotli decoding. Broader checkpoint gates and external
+static-profile acceptance remain tracked by the parent M1 report; local
+correctness is separate from official profile performance evidence.

@@ -56,3 +56,17 @@ retirement criterion. Formatting, conventions, release/docs checks, and graph
 refresh pass. Final-source sanitizers/platform/package/fuzz/protocol gates,
 large plaintext/live-H3 downloads, actual client decoding, and static-profile
 evidence remain M1 acceptance work.
+
+
+## Static profile MIME closure
+
+Official static-profile assets include regular.woff2 and bold.woff2. The final
+pure MIME polish maps that extension to the registered `font/woff2` type,
+following [IANA](https://www.iana.org/assignments/media-types/font/woff2) and
+[RFC 8081](https://www.rfc-editor.org/rfc/rfc8081.html#section-4.4.6). Two assertions
+extend the existing MIME case, including uppercase extension handling. The
+[retained RED/GREEN](evidence/m1_woff2/manifest.json) reproduces the generic
+fallback, then passes 1/1 focused and 752/752 combined native tests, 22/22 steps.
+Independent review finds no issue. Formatting, conventions, release/docs,
+dependency checks, and graph refresh pass. This adds no transport or allocation
+behavior and is not an official static-profile activation claim.

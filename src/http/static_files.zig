@@ -365,6 +365,7 @@ pub fn mime_type(path: []const u8) []const u8 {
     if (std.ascii.eqlIgnoreCase(extension, ".webp")) return "image/webp";
     if (std.ascii.eqlIgnoreCase(extension, ".ico")) return "image/x-icon";
     if (std.ascii.eqlIgnoreCase(extension, ".wasm")) return "application/wasm";
+    if (std.ascii.eqlIgnoreCase(extension, ".woff2")) return "font/woff2";
     if (std.ascii.eqlIgnoreCase(extension, ".txt")) return "text/plain; charset=utf-8";
     if (std.ascii.eqlIgnoreCase(extension, ".xml")) return "application/xml";
     if (std.ascii.eqlIgnoreCase(extension, ".pdf")) return "application/pdf";
