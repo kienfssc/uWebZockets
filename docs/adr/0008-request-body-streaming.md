@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-10-26
+- Revision: compatibility-preserving typed request view, 2026-10-26
 - Deciders: transport, HTTP, router, QUIC, and root integrator
 - Release: 2.2.0
 
@@ -17,17 +18,15 @@ and lifecycle validation pure; transport drivers call application sinks and
 perform I/O. The full-body APIs remain the default and remain compatible.
 M1 must finish before this decision's transport implementation starts.
 
-## Compatibility implementation gate, 2026-10-26
+## Compatibility revision, 2026-10-26
 
-The initial shared Request/helper surface below is under revision before any
-integration. A [compiler proof](../implement-2-2-0/evidence/m2_compatibility/README.md)
-shows that adding BodyNotBuffered to an existing inferred helper error set
-breaks unchanged buffered consumers. Keep the accepted route-level ownership,
-flow-control, terminal, and capacity design, while preserving legacy helper
-source compatibility through a separately reviewed streaming-aware surface.
-Do not implement the initial helper guards as written or weaken the distinct
-refusal semantics. The revised request/middleware/clone contract must be
-accepted and pass the old consumer probes before implementation lands.
+A [compiler proof](../implement-2-2-0/evidence/m2_compatibility/README.md) shows
+that adding BodyNotBuffered to an existing inferred helper error set breaks
+unchanged buffered consumers. Preserve Request/OwnedRequest, their layouts,
+helpers, error sets and clone semantics. New sink callbacks receive a distinct
+metadata-only StreamingRequest with its own explicit refusal contract. Do not
+alias the new error into an unrelated old parse error or widen legacy helpers.
+The route-level lifetime, framing, flow-control and capacity decisions remain.
 
 ## Public contract
 
@@ -44,9 +43,9 @@ pub const BodyBinding = struct {
     readiness: BodyReadiness = .ready,
 };
 pub const BodyLimits = struct { max_body_bytes: u64, max_active: u16 };
-pub const BodyBeginFn = *const fn (*anyopaque, *Request, BodyControl) anyerror!BodyBinding;
+pub const BodyBeginFn = *const fn (*anyopaque, *const StreamingRequest, BodyControl) anyerror!BodyBinding;
 pub const BodyChunkFn = *const fn (*anyopaque, []const u8) anyerror!BodyProgress;
-pub const BodyEndFn = *const fn (*anyopaque, *Request, *Response) anyerror!void;
+pub const BodyEndFn = *const fn (*anyopaque, *const StreamingRequest, *Response) anyerror!void;
 pub const BodyCancelFn = *const fn (*anyopaque, BodyCancelReason) void;
 pub const BodySink = struct {
     context: *anyopaque,
@@ -55,7 +54,12 @@ pub const BodySink = struct {
     end: BodyEndFn,
     cancel: BodyCancelFn,
 };
-pub const BodyRoute = struct { sink: BodySink, limits: BodyLimits };
+pub const BodyMiddlewarePolicy = enum { reject_legacy, headers_only };
+pub const BodyRoute = struct {
+    sink: BodySink,
+    limits: BodyLimits,
+    middleware_policy: BodyMiddlewarePolicy = .reject_legacy,
+};
 pub const BodyCancelReason = enum {
     cancelled, peer_closed, reset, invalid_body, body_too_large,
     timeout, shutdown, source_failure, sink_failure,
@@ -64,6 +68,15 @@ pub const BodyControlError = error{
     BodyControlExpired, BodyCallbackActive, BodyNotPaused, BodyDeliveryFailed,
 };
 ```
+
+StreamingRequest contains method/target/path/protocol/query slices, the existing
+HeadersView and a named RouteParamsView over primary/extra capture arrays.
+It exposes no raw body, legacy Request pointer or runtime BodyMode. Projection
+is pure and copies no metadata arrays. text()/bytes() return empty; its JSON,
+schema, form and multipart helpers return the closed BodyReadError set
+`error{BodyNotBuffered}` before parsing, media checks, allocation or issue
+mutation. Query parsing and case-sensitive capture lookup remain available.
+Use HeadersView directly rather than a second broad header facade.
 
 The caller supplies per-request state through begin's returned context. The
 library never allocates it. max_active is a required positive admission bound
@@ -81,10 +94,12 @@ streaming policy. Preserve existing early-data, method, QUERY, upgrade, and
 routing rules. Buffered routes retain their existing ceiling and complete-body
 middleware timing. For an enabled streaming route:
 
-1. Pin headers and captures; set Request.body_mode to streaming.
-2. Run middleware once with headers and an empty body.
+1. Pin initial metadata and validate the route's global middleware policy.
+2. Run every authorized global once in existing order, using a header-only
+   legacy Request with an empty body; preserve its baseline helper semantics.
 3. Check declared length, physical ingress, admission, and metadata capacity.
-4. Preserve middleware response metadata, reserve admission, and call begin.
+4. Preserve middleware metadata, reserve admission, project StreamingRequest,
+   and call begin.
 5. After successful admission, send any required 100 Continue and deliver data.
 
 A successful begin establishes exactly one end or cancel. A failed begin owns
@@ -104,6 +119,10 @@ notification and release admission once after it returns. End follows normal
 synchronous response rules: complete its fresh Response or arm an existing
 response producer. It does not acquire an AsyncResponse token. End owns its
 cleanup even on error; its error aborts output without a second cancel.
+Starting an outgoing producer does not extend upload binding lifetime: output
+context, scratch and any retained metadata owner must independently survive
+that response. Never retain freed binding state or callback-only request/view
+arrays. Individual pinned metadata bytes retain their separate response lifetime.
 
 Cancel reasons distinguish application cancellation, peer close/reset, invalid
 body, limit, timeout, shutdown, source failure, and sink failure. Reset/shutdown
@@ -134,17 +153,38 @@ The App and backing storage must outlive every control use, matching the
 existing async-token boundary. Header slices and route captures remain pinned
 through deferred end and subsequent response lifetime. Move HTTP/2's shared
 overflow captures to per-stream ownership before admitting streaming requests.
-Request pointers and header-array views are borrowed for each callback only;
-retain individual pinned byte slices or caller-owned metadata copies instead.
+StreamingRequest pointers and header/capture array views are borrowed for each
+callback only; retain individual pinned byte slices or owned copies instead.
+Keep source arrays/slots valid through the whole active callback, including
+synchronous response end/reset, and through any longer response lifetime.
+Control expiration does not permit storage recycling under a terminal callback.
 
-Add Request.body_mode with buffered as the default. In streaming mode body,
-text(), and bytes() are empty; fallible JSON, JSON validation, form, and full-body
-multipart helpers return BodyNotBuffered before parsing. Query helpers remain
-available. Clone copies available metadata and preserves the mode, without
-capturing future input. Validate and discard trailers on every transport; they
+Request and OwnedRequest remain unchanged, including buffered body helpers and
+all inferred error sets. New StreamingRequest.clone explicitly allocates an
+OwnedStreamingRequest metadata snapshot with checked sizes and failure cleanup.
+It owns flat byte/header/capture arrays and copies no body, future data, control,
+response or transport pointer. view() derives borrowed HeadersView/RouteParamsView
+from stable heap arrays after construction; no view points into a moved inline
+Request. Returning the owner before deriving a view is safe. Deinit invalidates
+all views. This separate owned type preserves body unavailability without a
+legacy runtime mode. Validate and discard trailers on every transport; they
 never merge into initial headers and end has no trailer view.
 
 ## Middleware and early responses
+
+BodyRoute defaults to reject_legacy. With any registered global middleware,
+route_body refuses that policy with BodyMiddlewareIncompatible before route
+mutation. Do not add an error to old App.use/Router.use/listen/run to police
+later registration. Admission rechecks the entire global chain: an incompatible
+late use gets bounded 503 before callbacks, quota, begin or 100 Continue.
+
+Explicit headers_only certifies every current/future global uses metadata and
+response operations only. Invoke all globals once in their existing order;
+none is silently skipped. Their original Request ABI sees an empty body and
+baseline helper behavior: form may parse an empty form, without a new error.
+BodyNotBuffered belongs to new StreamingRequest callbacks. Body-dependent
+globals must retain buffered routes or move validation into the sink. The
+policy adds no registry or middleware-capacity assumption.
 
 Retain up to the current 2048-byte pending-header capacity across middleware
 and end; never retain the stack Response pointer. HTTP/1 reserves persistent
@@ -154,8 +194,12 @@ before encoding overwrites it. Preflight capacity before begin, including
 configurations smaller than 2048; refuse overflow without truncation.
 
 Before the body completes, middleware can append headers or send a bounded
-fixed final response. Stream/file starts return BodyNotComplete before mutation.
-JSON/SSE starts inherit the canonical chunked-start guard. Preserve the
+fixed final response. Open-error stream/file/JSON/SSE starts return
+BodyNotComplete before any head, pending-header, queue or ownership mutation.
+Legacy send_file keeps its closed set and uses the semantically appropriate
+existing BodyNotAllowed tag for this phase. Do not use ZeroCopyUnavailable,
+which would invite fallback. JSON/SSE wrappers must reach the guard before
+mutating headers. Preserve the
 nonfallible writable_stream signature; its first write reaches that guard.
 
 Early HTTP/1 rejection closes after final output drains. HTTP/3 stops reads
@@ -264,6 +308,14 @@ until real-client validation, following
 
 ## Implementation and acceptance
 
+First prove unchanged narrow-return/exhaustive-catch buffered consumers through
+release exports, new typed helper refusals, owned snapshot lifetime/failure
+cleanup, and unchanged legacy layout. Earlier runtime-mode prototype growth
+must not be applied to config assertions. Later adapters must prove middleware
+policy/refusal ordering and the closed send_file error/ownership exception.
+End/reset inside BodyEnd cannot recycle its metadata before return; a pending
+output producer must use independently valid context after upload cleanup.
+
 Implement serial slices: common types/storage/router admission, HTTP/1/TLS,
 HTTP/2, HTTP/3, the transport matrix, then incremental multipart. Keep the body
 decoder and lifecycle/progress invariants common; adapters own I/O and storage.
@@ -291,3 +343,12 @@ terminal semantics, capacity formulas, limits, and refusal outcomes above resolv
 both. Bounded re-review found no remaining actionable contract issue. The root
 integrator accepts the design; runtime and client evidence remain implementation
 requirements, including the provisional HTTP/3 informational-header path.
+
+The compatibility follow-up rejects the initial shared runtime-mode guards:
+actual buffered compiler consumers would break. Independent revision review
+supports the distinct typed view, unchanged legacy surfaces and explicit global
+middleware policy. Its remaining outgoing-producer lifetime clarification is
+incorporated above with adapter acceptance; no output hook is introduced. Bounded
+re-review found no remaining findings; root accepts this revised design.
+Toy declaration/membership probes establish feasibility only; actual revised
+source, compiler consumers, measurements and all required gates remain mandatory.
