@@ -65,14 +65,14 @@ d5a6545496dfb17878fe23d026e0a880ee9e12c9, including structured lock resolution,
 successful Nix evaluation, source NAR, and exact implementation excerpts.
 That correction supersedes the earlier addendum's generator identity/version
 claims. Original artifact bytes remain unchanged. All three outer hashes are
-listed in [SHA256SUMS](evidence/m3_current_pins/SHA256SUMS).
+listed with the later candidate in [SHA256SUMS](evidence/m3_current_pins/SHA256SUMS).
 
 ## Remaining dependency work
 
 The executable-step audit finds no local vendor patch, overlay, or Perl
 generation. Literal matches include rejection guards and semantic-version
-names; those safeguards remain. Two stale build comments describing an overlay
-still need correction.
+names; those safeguards remain. A follow-up removes two stale build comments
+describing an overlay; the assembled pinned-source build remains unchanged.
 
 The pinned lsquic tree records src/lshpack at
 cf0f70dd10b352194c97448eb5d00b4aa484f531, while all four root views build
@@ -87,6 +87,29 @@ root parent-pin views from the published commit. Preserve both current child
 pins and existing ledger entries; add LSQ-003 and child-gitlink validation with
 a mismatch-fails regression. An unpublished local candidate is not a valid
 root pin. This Codespace currently lacks push access to that fork.
+
+The independently reviewed [local candidate archive](evidence/m3_current_pins/lsq003_local_candidate.tar.gz)
+contains commit 87e318737657b2c6cde04ad94d583651340d6968, whose parent is the
+published 85bd081c pin and whose tree is
+73c9b29643d0c37c2ca2e93d3a0a539dfe4badc1. Direct object comparison proves the
+sole change is the mode-160000 HPACK gitlink. An 880-byte incremental Git bundle
+requires that published parent and restores the exact candidate, parent, and
+tree. It is a review artifact, never an input applied by the root build.
+LSQ-003 is proposed; no integration acceptance or root pin update is claimed.
+
+Five Debug and five UB-trap HPACK configurations pass with saved compile/run
+statuses. The initial exit-134 xxHash alignment abort is preserved. The final
+supplemental harness excludes alignment checking only for the separately
+compiled xxhash object, following its upstream intentional unaligned-load
+implementation and documented exception. Decoder/test alignment checks and
+assertions remain enabled. This establishes neither xxHash's freedom from C
+undefined behavior nor replacement coverage for required project sanitizers.
+
+Read-only ref capture also finds the fork mirror at
+413ca7c1acb443b0f9f7aa28611ca723c6738844 and upstream at
+02b10a9e620bc235e40baa8dd0b2d9f32ff96cab. The captured refs differ.
+Mirror synchronization and security review must precede publication
+and acceptance; the candidate alone cannot close M3.
 
 The child HPACK code serves legacy gQUIC headers; the current engine excludes
 gQUIC by default. IETF HTTP/3 uses QPACK, and TCP HTTP/2 uses the Zig HPACK codec.
