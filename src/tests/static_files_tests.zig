@@ -86,7 +86,7 @@ fn request_for(method: []const u8, path: []const u8) Request {
     return request;
 }
 
-const FileCapture = struct {
+pub const FileCapture = struct {
     source: ?response.FileSource = null,
     status: [64]u8 = undefined,
     status_len: usize = 0,
@@ -98,7 +98,7 @@ const FileCapture = struct {
     end_calls: usize = 0,
     failure: ?anyerror = null,
 
-    fn target(state: *FileCapture, supported: bool) response.Http3Target {
+    pub fn target(state: *FileCapture, supported: bool) response.Http3Target {
         return .{ .context = state, .end_fn = end, .begin_fn = begin, .write_fn = write, .finish_fn = finish, .stream_file_fn = if (supported) accept_file else null };
     }
 
@@ -178,7 +178,7 @@ test "static files: oversized framed response hands off selected file and stable
 }
 
 /// Captures exact bytes and headers while enforcing a per-event write budget.
-const Wire = struct {
+pub const Wire = struct {
     expected: []const u8 = "",
     bytes: usize = 0,
     budget: usize = 0,
@@ -277,14 +277,14 @@ const Wire = struct {
     };
 };
 
-const TestStream = support.quic_stream.stream_with(Wire.table, .{ .response_header_count = 10 });
+pub const TestStream = support.quic_stream.stream_with(Wire.table, .{ .response_header_count = 10 });
 
 fn release(context: *anyopaque, _: *TestStream) void {
     const wire: *Wire = @ptrCast(@alignCast(context));
     wire.releases += 1;
 }
 
-fn init_stream(wire: *Wire, body: []u8, headers: []u8) TestStream {
+pub fn init_stream(wire: *Wire, body: []u8, headers: []u8) TestStream {
     return .{
         .owner = wire,
         .release_fn = release,
@@ -294,7 +294,7 @@ fn init_stream(wire: *Wire, body: []u8, headers: []u8) TestStream {
     };
 }
 
-fn drain_stream(quic: *TestStream, wire: *Wire, scratch: []u8) !void {
+pub fn drain_stream(quic: *TestStream, wire: *Wire, scratch: []u8) !void {
     for (0..4096) |_| {
         if (quic.response_phase == .done) break;
         @memset(scratch, 0xa5);

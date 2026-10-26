@@ -201,10 +201,10 @@ the combined native suite passes 713/713. Matching combined gates remain open.
 
 [Basic static integration](m1_static_streaming.md) passes 730/730 native tests,
 including exact 100 MiB TLS HTTP/1 and HTTP/2 downloads, metadata, and ranges.
-Still required: sidecar availability/selection through the all-field helper,
-coding-specific validators and encoded ranges, Vary, stale/missing/confinement
-coverage, large plaintext/live-H3 proof, final-source gates, and external static
-profile evidence. The dated kTLS and conditional splice boundaries are below
+[Opt-in sidecars](m1_static_sidecars.md) now add complete-field selection,
+coding-specific validators, encoded ranges, Vary, and freshness/confinement
+coverage, with 752/752 native tests. Large plaintext/live-H3 proof, actual client
+decoding, final-source gates, and external static-profile evidence remain open. The dated kTLS and conditional splice boundaries are below
 and in the roadmap.
 
 ## M1-3: 100 KiB TLS echo

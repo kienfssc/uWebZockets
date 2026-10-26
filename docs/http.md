@@ -234,6 +234,11 @@ header can be set by the client.
 
 ## Static files
 
+Mount an operator-controlled asset directory. Untrusted users must not replace
+its entries, and publishers should replace regular files with regular files.
+Filesystem operations are synchronous; sidecar preflight cannot eliminate a
+hostile type-substitution race. See the [filesystem boundary](adr/0010-bounded-file-streaming.md#asset-filesystem-boundary).
+
 `App.static(prefix, root, options)` mounts a directory with directory-relative
 path confinement, symlinks disabled, MIME detection, ETag and Last-Modified
 validation, cache control, and one RFC 9110 byte range. `If-None-Match` handles
@@ -253,7 +258,12 @@ Absent fields prefer identity; equal positive weights prefer br, gzip, then
 identity. Repeated codings use their minimum weight. The named
 `EncodingAvailability` defaults to identity only. The contract and malformed
 input policy are recorded in [ADR 0009](adr/0009-static-content-coding.md).
-Sidecar file selection is not connected to `App.static` yet.
+Enable sidecars with `app.static("/assets", root, .{ .precompressed = true })`.
+Only confined regular `.gz`/`.br` files at least as new as the opened source are
+available. Selection uses every Accept-Encoding field; complete refusal returns
+406. Selected coding and metadata determine validators, lengths, and ranges;
+ranges address encoded bytes. Negotiable responses include Vary, and encoded
+responses include Content-Encoding. Default mounts preserve identity behavior.
 
 `negotiate.select_encoding_headers(req.headers(), available)` applies the same
 rules to every matching field, including overflow headers. It preserves late

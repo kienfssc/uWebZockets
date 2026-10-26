@@ -1,12 +1,22 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const Request = @import("request.zig").Request;
 const Response = @import("response.zig").Response;
 const cache = @import("cache.zig");
+const negotiate = @import("negotiate.zig");
+
+/// An opened regular representation owns its descriptor until selection or transfer.
+const Representation = struct {
+    file: std.Io.File,
+    stat: std.Io.File.Stat,
+    encoding: negotiate.Encoding,
+};
 
 pub const Options = struct {
     index: ?[]const u8 = "index.html",
     etag: bool = true,
     max_age: u32 = 0,
+    precompressed: bool = false,
 };
 
 pub const ByteRange = struct {
@@ -80,15 +90,19 @@ pub fn static_files(comptime file_capacity: usize) type {
             }
             if (path.len == 0 or path[0] == '/') return error.InvalidStaticPath;
 
-            var file = try self.open_no_symlinks(path);
+            const representation = try self.select_file(path, request) orelse {
+                try response.end_with_headers("406 Not Acceptable", "Vary: Accept-Encoding\r\n", "");
+                return;
+            };
+            var file = representation.file;
             var file_owned = true;
             defer if (file_owned) file.close(self.io);
-            const stat = try file.stat(self.io);
-            if (stat.kind != .file) return error.FileNotFound;
+            const stat = representation.stat;
+            const coding: ?negotiate.Encoding = if (self.options.precompressed) representation.encoding else null;
 
             var etag_buffer: [80]u8 = undefined;
             const entity_tag = if (self.options.etag)
-                try format_etag(&etag_buffer, stat.size, stat.mtime.nanoseconds)
+                try format_etag(&etag_buffer, stat.size, stat.mtime.nanoseconds, coding)
             else
                 "";
             var modified_buffer: [32]u8 = undefined;
@@ -103,6 +117,7 @@ pub fn static_files(comptime file_capacity: usize) type {
                     self.options.max_age,
                     stat.size,
                     null,
+                    coding,
                 );
                 try response.end_with_headers("304 Not Modified", headers, "");
                 return;
@@ -116,8 +131,8 @@ pub fn static_files(comptime file_capacity: usize) type {
                     var content_range_buffer: [80]u8 = undefined;
                     const content_range = try std.fmt.bufPrint(
                         &content_range_buffer,
-                        "Content-Range: bytes */{d}\r\n",
-                        .{stat.size},
+                        "Content-Range: bytes */{d}\r\n{s}",
+                        .{ stat.size, if (coding != null) "Vary: Accept-Encoding\r\n" else "" },
                     );
                     try response.end_with_headers("416 Range Not Satisfiable", content_range, "");
                     return;
@@ -133,6 +148,7 @@ pub fn static_files(comptime file_capacity: usize) type {
                 self.options.max_age,
                 stat.size,
                 range,
+                coding,
             );
             const status = if (range != null) "206 Partial Content" else "200 OK";
             const offset: u64 = if (range) |selected| selected.start else 0;
@@ -170,6 +186,69 @@ pub fn static_files(comptime file_capacity: usize) type {
             file_owned = false;
         }
 
+        /// Holds at most three representation descriptors; releases every unselected one.
+        fn select_file(self: *Self, path: []const u8, request: *const Request) !?Representation {
+            const file = try self.open_no_symlinks(path, false);
+            var source_owned = true;
+            defer if (source_owned) file.close(self.io);
+            const stat = try file.stat(self.io);
+            if (stat.kind != .file) return error.FileNotFound;
+            const source = Representation{ .file = file, .stat = stat, .encoding = .identity };
+            if (!self.options.precompressed) {
+                source_owned = false;
+                return source;
+            }
+            var gzip = try self.open_sidecar(path, ".gz", stat.mtime.nanoseconds, .gzip);
+            defer if (gzip) |candidate| candidate.file.close(self.io);
+            var br = try self.open_sidecar(path, ".br", stat.mtime.nanoseconds, .br);
+            defer if (br) |candidate| candidate.file.close(self.io);
+            const encoding = negotiate.select_encoding_headers(request.headers(), .{
+                .gzip = gzip != null,
+                .br = br != null,
+            }) orelse return null;
+            switch (encoding) {
+                .identity => {
+                    source_owned = false;
+                    return source;
+                },
+                .gzip => {
+                    const selected = gzip.?;
+                    gzip = null;
+                    return selected;
+                },
+                .br => {
+                    const selected = br.?;
+                    br = null;
+                    return selected;
+                },
+            }
+        }
+
+        fn open_sidecar(self: *Self, path: []const u8, suffix: *const [3]u8, source_mtime: i96, encoding: negotiate.Encoding) !?Representation {
+            var buffer: [1024]u8 = undefined;
+            if (path.len > buffer.len - suffix.len) return null;
+            @memcpy(buffer[0..path.len], path);
+            @memcpy(buffer[path.len..][0..suffix.len], suffix);
+            const file = self.open_no_symlinks(buffer[0 .. path.len + suffix.len], true) catch |err| switch (err) {
+                // NameTooLong also covers a valid source leaf whose suffix
+                // exceeds the filesystem's component limit.
+                error.FileNotFound,
+                error.NotDir,
+                error.IsDir,
+                error.SymLinkLoop,
+                error.NotRegularFile,
+                error.NameTooLong,
+                => return null,
+                else => return err,
+            };
+            var owned = true;
+            defer if (owned) file.close(self.io);
+            const stat = try file.stat(self.io);
+            if (stat.kind != .file or stat.mtime.nanoseconds < source_mtime) return null;
+            owned = false;
+            return .{ .file = file, .stat = stat, .encoding = encoding };
+        }
+
         /// Only an unavailable kernel path permits a different delivery path.
         fn try_send_file(
             response: *Response,
@@ -186,12 +265,27 @@ pub fn static_files(comptime file_capacity: usize) type {
             return true;
         }
 
+        fn regular_leaf(self: *Self, directory: std.Io.Dir, leaf: []const u8) !bool {
+            if (comptime builtin.os.tag != .linux) {
+                return (try directory.statFile(self.io, leaf, .{ .follow_symlinks = false })).kind == .file;
+            }
+            // Pinned Zig 0.16 pathname-stat panics on component NameTooLong.
+            // Keep metadata-only open until pathname-stat returns that error.
+            const metadata = try directory.openFile(self.io, leaf, .{
+                .path_only = true,
+                .follow_symlinks = false,
+                .allow_directory = true,
+            });
+            defer metadata.close(self.io);
+            return (try metadata.stat(self.io)).kind == .file;
+        }
+
         /// Opens a relative path without following symlinks in any component.
         ///
         /// Zig 0.16 ignores `resolve_beneath` on Linux, and `O_NOFOLLOW` only
         /// covers the final component, so each directory level is opened with
         /// `follow_symlinks = false` explicitly.
-        fn open_no_symlinks(self: *Self, path: []const u8) !std.Io.File {
+        fn open_no_symlinks(self: *Self, path: []const u8, regular_candidate: bool) !std.Io.File {
             var current = self.directory;
             var owns_current = false;
             defer if (owns_current) current.close(self.io);
@@ -208,6 +302,12 @@ pub fn static_files(comptime file_capacity: usize) type {
                 current = child;
                 owns_current = true;
                 component = next;
+            }
+            if (regular_candidate) {
+                // Asset publishing controls entry types. This rejects stable
+                // special files; hostile regular-to-FIFO replacement can still
+                // block the supplied Io open and is outside that boundary.
+                if (!try self.regular_leaf(current, component)) return error.NotRegularFile;
             }
             return current.openFile(self.io, component, .{
                 .allow_directory = false,
@@ -301,7 +401,8 @@ fn normalize_path(input: []const u8, buffer: []u8) ![]const u8 {
     return std.mem.trimStart(u8, buffer[0..output_length], "/");
 }
 
-fn format_etag(buffer: []u8, size: u64, mtime_ns: i96) ![]const u8 {
+fn format_etag(buffer: []u8, size: u64, mtime_ns: i96, coding: ?negotiate.Encoding) ![]const u8 {
+    if (coding) |encoding| return std.fmt.bufPrint(buffer, "\"{s}-{x}-{x}\"", .{ @tagName(encoding), size, @as(u96, @bitCast(mtime_ns)) });
     return std.fmt.bufPrint(buffer, "\"{x}-{x}\"", .{ size, @as(u96, @bitCast(mtime_ns)) });
 }
 
@@ -367,9 +468,14 @@ fn format_headers(
     max_age: u32,
     size: u64,
     range: ?ByteRange,
+    coding: ?negotiate.Encoding,
 ) ![]const u8 {
     var writer: std.Io.Writer = .fixed(buffer);
     try writer.print("Content-Type: {s}\r\nAccept-Ranges: bytes\r\n", .{mime_type(path)});
+    if (coding) |encoding| {
+        try writer.writeAll("Vary: Accept-Encoding\r\n");
+        if (encoding != .identity) try writer.print("Content-Encoding: {s}\r\n", .{@tagName(encoding)});
+    }
     if (etag.len != 0) try writer.print("ETag: {s}\r\n", .{etag});
     if (modified.len != 0) try writer.print("Last-Modified: {s}\r\n", .{modified});
     if (max_age != 0) try writer.print("Cache-Control: public, max-age={d}\r\n", .{max_age});

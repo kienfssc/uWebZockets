@@ -75,6 +75,14 @@ timeout is 120 seconds; `ConfiguredAppWithTimeout` can change it or disable
 idle sweeping with zero. HTTP/3 additionally bounds decoded headers, request
 bodies, packet buffers, connections, and active streams.
 
+Static assets require an operator-controlled filesystem namespace. Untrusted
+users must not create or replace entries beneath a mounted root. Publish
+regular files as regular files; avoid substituting FIFOs, devices, or other
+special types while serving. Confined no-symlink opening and descriptor kind
+checks remain enforced. Sidecar preflight rejects stable special files, but
+the portable synchronous filesystem API does not guarantee progress against
+hostile entry replacement or a stalled filesystem.
+
 Parameterized routing stores at most 16 borrowed captures per request and 64
 patterns per router. Global middleware is capped at 32 entries. Asynchronous
 response tokens are generation-checked and one-shot; they are confined to the

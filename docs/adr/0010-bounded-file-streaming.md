@@ -131,6 +131,38 @@ These reads use explicit bounded std.Io operations. This decision does not
 claim asynchronous disk I/O. An asynchronous disk backend can be considered
 separately after its ownership and measured benefit are established.
 
+## Asset filesystem boundary
+
+Static roots use an operator-controlled namespace. Untrusted users must not
+create or replace entries beneath it. Deployment can replace regular files
+with regular files; it must not substitute FIFOs, devices, or other special
+types while serving. Filesystem I/O is synchronous and has no bounded-latency
+guarantee against a hostile filesystem or writer.
+
+Sidecar probing checks the final leaf without following symlinks on the same
+already-confined parent handle, then performs the no-follow read open and
+descriptor stat. Stable nonregular candidates never reach the read open;
+freshness uses descriptor metadata. This preserves supplied std.Io semantics
+and rejects symlinks, but cannot prevent regular-to-FIFO replacement between
+preflight and open. The pinned API has no portable nonblocking read-open flag;
+Windows stat itself can open a handle. The existing source opener shares that
+local-writer limitation. Do not describe this preflight as race-free or
+universally nonblocking. Supporting hostile filesystem writers needs a
+separate native-opening/custom-Io contract.
+
+Linux uses a private `path_only` open of the final leaf for this preflight.
+Zig 0.16.0 pathname stat treats filesystem `ENAMETOOLONG` as an unexpected
+errno, so appending a sidecar suffix to an otherwise valid source name can
+panic. Both pinned Linux Io backends map that error from open to the catchable
+`NameTooLong` result. An O_PATH descriptor is statted, required to be regular,
+and closed before the readable open; it never becomes transfer input. Other
+platforms retain their existing pathname stat. This narrow stdlib workaround
+is an integrator-approved exception to the transport profile's prohibition
+on new OS conditions in portable modules. Remove the Linux specialization
+when the pinned pathname-stat implementation returns `NameTooLong` normally,
+retaining the long-name and special-file regressions. No filesystem component
+limit is inferred from `Dir.max_name_bytes`.
+
 ## Static integration
 
 Keep send_file first for plaintext and use stream_file for framed delivery.
