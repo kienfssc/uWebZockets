@@ -160,10 +160,13 @@ def curl_transport(endpoint: Endpoint) -> list[str]:
 
 def curl_request(endpoint: Endpoint, directory: Path, label: str, path: str, headers: tuple[str, ...] = (), *, head: bool = False, compressed: bool = False, reuse: bool = False) -> dict:
     base = f"{endpoint['scheme']}://127.0.0.1:{endpoint['port']}"
+    body_path = directory / f"{label}.body"
+    if not head:
+        body_path.touch(exist_ok=False)
     metadata = "%{http_version} %{response_code} %{size_download} %{num_connects} %{conn_id}\\n"
     arguments = ["curl", "--disable", "--silent", "--show-error", "--verbose", "--trace-time", "--stderr", str(directory / f"{label}.trace")]
     arguments += curl_transport(endpoint)
-    arguments += ["--dump-header", str(directory / f"{label}.headers"), "--output", os.devnull if head else str(directory / f"{label}.body"), "--write-out", metadata]
+    arguments += ["--dump-header", str(directory / f"{label}.headers"), "--output", os.devnull if head else str(body_path), "--write-out", metadata]
     for value in headers:
         arguments += ["--header", value]
     if head:
@@ -183,7 +186,7 @@ def curl_request(endpoint: Endpoint, directory: Path, label: str, path: str, hea
     if reuse:
         require(rows[1][1] == "200" and rows[1][3] == "0" and rows[0][4] == rows[1][4], f"connection was not reused: {rows}")
         require((directory / f"{label}.reuse.body").read_bytes() == b"ok", f"reuse health body failed: {label}")
-    return {"status": int(rows[0][1]), "metadata": rows, "headers": read_headers(directory / f"{label}.headers"), "body": directory / f"{label}.body", "head": head}
+    return {"status": int(rows[0][1]), "metadata": rows, "headers": read_headers(directory / f"{label}.headers"), "body": body_path, "head": head}
 
 
 def check_response(response: dict, status: int, source: Path | None, *, encoding: str | None = None, length: int | None = None, offset: int = 0, vary: bool = True) -> dict:
@@ -202,6 +205,7 @@ def check_response(response: dict, status: int, source: Path | None, *, encoding
             require(response["metadata"][0][2] == "0", "HEAD downloaded body bytes")
             return {"bytes": 0, "declared_bytes": selected_length}
         return compare_files(response["body"], source, offset, selected_length)
+    require(response["metadata"][0][2] == "0", "bodyless response downloaded bytes")
     require(response["body"].stat().st_size == 0, "bodyless response has body bytes")
     return {"bytes": 0}
 

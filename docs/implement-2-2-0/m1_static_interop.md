@@ -42,3 +42,28 @@ a saved clean revision. These checks do not establish live server delivery.
 The harness makes no throughput, official HttpArena activation, or global
 allocation claim. Ephemeral test certificates support loopback correctness
 only. The canonical repository and malformed-protocol gates remain required.
+
+
+## First saved-revision run and harness correction
+
+The [first live run](evidence/m1_static_interop/first_live_failed.json) at
+`b2d2acb570eb0eae89bdb47e35889d1aa3264a6a` builds 17/17 steps, then fails
+with aggregate exit 1. Before that failure, plaintext delivery compares all
+104,857,600 bytes and reuses the same connection for health. Its five completed
+curl invocations return zero; the owned server drains and exits zero without
+forced killing. TLS/H3 cases never start. This partial proof does not close
+the full matrix.
+
+The failure is a harness FileNotFoundError: successful curl 304 reports zero
+downloaded bytes without creating its output file. The correction precreates
+one unique caller-owned empty output before each non-HEAD request, retains the
+empty-file assertion, and additionally requires zero downloaded bytes for
+bodyless responses. Existing paths are refused without overwrite, and failed
+curl commands still fail before response checks. Focused retained RED/GREEN
+cases and independent re-review support the correction; no gate was weakened.
+
+The unchanged Brotli fixture contains 49 encoded bytes and decodes to 1376
+bytes. Earlier preparation prose/log output incorrectly printed 47; actual
+decoder checks used the full fixture. The original log remains unchanged and
+the additive manifest records the correction and exact hash. README is fixed.
+A fresh exact-source full live run remains required.

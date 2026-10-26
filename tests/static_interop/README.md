@@ -135,7 +135,7 @@ python3 tests/static_interop/probe.py fixtures \
 `truncate` creates the large sparse file; seven one-byte writes establish the
 sentinels. The manifest records logical and allocated file bytes and every file
 digest. Small gzip uses `gzip.compress(..., mtime=0)`. The 1376-byte small source
-and valid 47-byte Brotli fixture are fixed in `probe.py`; each live decoded curl
+and valid 49-byte Brotli fixture are fixed in `probe.py`; each live decoded curl
 check independently verifies them. To regenerate the checked-in Brotli bytes
 for development, use the following recipe (`BrotliEncoderVersion` returned
 16781312 for the current bytes). This is not a library build requirement:
