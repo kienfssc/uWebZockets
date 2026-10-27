@@ -58,7 +58,10 @@ The maintained epoll dead-target candidate is archived separately in
 The retained source-only duplicate proposal distinguishes private registered
 state from adding/deleting/worker work, covers accept/recv/send, preserves fd 0,
 and invalidates the duplicate cache before closing and acknowledging. No
-implementation or native leak/cancellation/race experiment follows from it.
+native leak/cancellation/race experiment follows from it. Later bounded source
+corrections are independently reviewed and saved in the linked M3 report:
+registered duplicate cleanup, IOCP result classification and worker publication.
+Failed-registration rollback and the full H1 retirement design remain open.
 
 Root provisionally accepts a header resolver returning an unreserved BodyMatch,
 followed by an atomic reserve-to-pure-BodyState.arm handoff. No callback or I/O
@@ -85,11 +88,12 @@ Neither draft has final independent review or permission to land alone.
 
 The subsequent [HTTP/2 checkpoint](m2_h2_refusal.md) completes additional scoped
 framing, output-pressure, sibling and capacity checks and preserves exact
-source deltas from this recovery archive. It remains isolated and unreviewed;
+source deltas from this recovery archive. Its later reviewed reset-writer
+correction remains isolated;
 the initial interrupted status above describes the original archived snapshot.
 The [HTTP/3 checkpoint](m2_h3_refusal.md) similarly extends the saved H3 draft
-with compatibility corrections and completed component checks. Both still
-require independent review and combined transport integration.
+with compatibility corrections, completed component checks and independent
+review. Both still require combined transport integration and complete gates.
 
 Resume from the archived seed manifests and exact source snapshots, reconcile
 root's subsequent integration corrections, and complete those acceptance

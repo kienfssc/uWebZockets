@@ -1,7 +1,7 @@
 # M2: HTTP/2 header refusal preparation
 
-Status: isolated implementation verified, 2026-10-27; independent review and
-production integration remain open. This implements temporary header-time
+Status: isolated implementation verified and independently reviewed, 2026-10-27;
+production integration remains open. This implements temporary header-time
 refusal for selected BodyRoutes, not an HTTP/2 upload driver.
 
 The optional named header selector uses canonical router matching before
@@ -69,9 +69,21 @@ connection. The io_uring server drains with zero sink calls or retained quota;
 only the healthy request invokes middleware. Both processes exit zero and the
 owned server is reaped. This is refusal evidence, not a completed 100 MB upload.
 
-No final independent review or combined transport gate has run for this
-checkpoint. Account usage limits still prevent the required
-independent agent review. The prepared public registry/App/R2 surface must land
+Fresh independent review found one error-path defect: reset emission can clear
+the stream before its writer fails, resetting response_started. The old catch
+could mistake OutputTooSmall for a generation-capacity failure, retry and hide
+it. The [reviewed correction](evidence/m2_h2_refusal_reset/README.md) requires the
+same original active stream and an unstarted response before capacity recovery.
+Its memory-writer regression reproduces the old behavior and verifies one reset
+attempt after the fix. Re-review resolves P2 with no new actionable findings.
+
+The corrected source passes 15 focused and 69 unchanged HTTP/2 cases in each
+mode, plus actual native/Linux32 seven-case runs. The restricted Linux32 SIGSYS
+is retained separately from the identical binary's passing normal-OS run.
+No v6 live-client run or combined transport gate is claimed. The earlier live
+result above remains evidence for its recorded v5 source.
+
+The prepared public registry/App/R2 surface must land
 with a working HTTP/1 consumer and corresponding H2/H3 refusal. Reconcile later
 root changes before integration. Actual H2 streaming, bounded shared body
 blocks, live 100 MB uploads and full M2 acceptance remain required.

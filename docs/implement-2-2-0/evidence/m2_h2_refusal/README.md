@@ -20,5 +20,7 @@ sandbox socket restrictions, an incorrect fixture, and an exploratory green
 record with stale inherited hashes remain explicitly distinguished from final
 successful immutable-source evidence.
 
-This checkpoint is unintegrated and awaits independent review, live clients
-and combined gates. The [report](../../m2_h2_refusal.md) records its limitations.
+This original checkpoint remains unchanged and unintegrated. The subsequent
+[independently reviewed correction](../m2_h2_refusal_reset/README.md) fixes a
+reset-writer error found during review. The [report](../../m2_h2_refusal.md)
+also links the normal v5 live-client check and records combined-gate limits.
