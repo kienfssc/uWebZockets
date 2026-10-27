@@ -95,3 +95,7 @@ Resume from the archived seed manifests and exact source snapshots, reconcile
 root's subsequent integration corrections, and complete those acceptance
 criteria. Do not treat any of these separate snapshots as an authoritative
 combined build or advertise streaming capability from this recovery record.
+
+The [pure H1 admission checkpoint](m2_h1_admission.md) implements physical bounds
+and the atomic reservation transfer separately. It establishes no live driver,
+native lifetime algorithm or production activation.

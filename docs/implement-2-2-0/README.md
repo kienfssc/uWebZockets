@@ -44,6 +44,8 @@ The [HTTP/2 refusal checkpoint](m2_h2_refusal.md) extends its isolated draft wit
 framing, output pressure, sibling, capacity and Linux32 verification.
 The [HTTP/3 checkpoint](m2_h3_refusal.md) adds source compatibility, canonical
 selection, queued-trailer, sibling and Linux32 verification to its saved draft.
+The [pure HTTP/1 admission checkpoint](m2_h1_admission.md) verifies physical
+ingress bounds and the atomic router-to-common-state reservation handoff.
 
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
