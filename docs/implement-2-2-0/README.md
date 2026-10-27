@@ -60,6 +60,8 @@ The [cold-state successor](m2_h1_cold_state.md) adds the head target, delivery
 pin and payload accounting with pure reset/drain proof and unchanged disabled slabs.
 The [pure retirement policy](m2_h1_retirement_policy.md) prepares coalesced timer
 boundaries and one-shot close eligibility without native callback effects.
+Its [typed invariant follow-up](evidence/m2_h1_invariant_failure/README.md)
+preserves failure-latch ordering before the new fixed inactive-phase diagnostic.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and

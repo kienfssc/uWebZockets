@@ -40,3 +40,18 @@ stages, integrate terminal/admission cleanup, and make physical close/release
 the final safe action. Unexpected RetirementInactive also needs truthful typed
 failure-fence handling. Real delivery, TLS and all full integration gates remain
 required. Root production source, pins and maintained refs remain unchanged.
+
+## Typed invariant failure follow-up
+
+The [next checkpoint](evidence/m2_h1_invariant_failure/README.md) adds one
+payloadless retirement_inactive failure case and its fixed diagnostic to the
+existing guarded observer. Its unconditional failure-latch store stays before
+the panic switch. Ordinary native timer errors retain their existing payload;
+future callbacks must map the actual inactive-phase error truthfully.
+
+Three-target actual observer IR and central semantic compilation pass; the
+three unchanged classifier/payload cases pass in both modes. Independent review
+finds no actionable findings. No panic is executed, no new helper or stored
+field is introduced, and no native callback is wired by these two added lines.
+The archive also records the source-grounded lifetime contract for subsequent
+real cleanup, closing-aware controls and retained-input continuation.
