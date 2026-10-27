@@ -1,5 +1,9 @@
 # Registered duplicate cleanup review source
 
+This preserves the original source-only checkpoint. The subsequent
+[reviewed follow-up](../m3_libxev_dup_verified/README.md) supersedes its pending
+review/verification status for the unchanged candidate tree.
+
 The [archive](registered-dup-cleanup.tar.gz) is a source-only followup on reviewed
 local libxev candidate `7b7b1f14518d9504b15590d123ec494b8fadb2e3`. Its uncommitted
 candidate tree is `e13b3948e95075cd1245b25a872fa714045ba95e`. No compiler or

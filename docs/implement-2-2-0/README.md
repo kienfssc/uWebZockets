@@ -51,6 +51,10 @@ refusal, a healthy sibling and reuse with a reviewed test-only libxev override.
 The [pure HTTP/1 admission checkpoint](m2_h1_admission.md) verifies physical
 ingress bounds and the atomic router-to-common-state reservation handoff.
 
+The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
+adds independent source review, pure decisions, healthy-suite verification and
+a complete recovery bundle without changing maintained refs or root pins.
+
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
 release tag, and publication.

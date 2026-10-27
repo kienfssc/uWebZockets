@@ -50,12 +50,20 @@ This verified candidate does not settle registered duplicate-descriptor cleanup,
 generic adding/deleting/thread-pool cancellation, foreign IPv6 peer storage,
 or connection physical-close and slot-reuse ownership. A separate
 [registered duplicate cleanup draft](evidence/m3_libxev_dup_cleanup/README.md)
-now preserves the actual private decision, cleanup ordering, two declared pure
-tests and complete source tree. It has formatting/whitespace checks only;
-independent review, compilation and execution remain pending. It is not a
-maintained commit or adopted pin, and the earlier passing suites do not verify
-that delta. M2 transport retirement and M3 final provenance closure remain gated
-on their own complete evidence.
+preserves the original source-only snapshot. The later
+[reviewed follow-up](evidence/m3_libxev_dup_verified/README.md) verifies that exact
+unchanged tree and saves local append commit
+`29490914cf58b24d7ab32ca5349f9a03a910435f`, parent `7b7b1f14518d9504b15590d123ec494b8fadb2e3`.
+Fresh independent source review finds no actionable issues within its restricted
+registered non-worker contract. Its actual-decision filters pass 28/28 each;
+the healthy suites pass 151/155 with four existing skips in Debug and ReleaseSafe.
+Every source hash is unchanged. A complete-history bundle restores and verifies
+the exact commit/tree in an empty repository with strict fsck.
+
+This is not a maintained publication, adopted pin or runtime leak/race claim.
+Fresh R3 review finds a separate IOCP error-mapping prerequisite and requires
+explicit handling of io_uring ExpirationInProgress. Full H1 physical-close,
+generic adding/deleting/worker behavior and M3 provenance acceptance remain open.
 
 The later [normal HTTP/3 refusal check](evidence/m2_h3_refusal_live/README.md)
 uses an immutable export of the reviewed three-commit candidate as a scoped
