@@ -56,6 +56,8 @@ The [platform setup guard](m2_upload_platform.md) records the confirmed BSD
 restriction, eligible-target compilation and refusal-before-mutation proofs.
 The [coherent H1 baseline](m2_h1_baseline.md) combines the reviewed preparation
 with current Root, preserving multipart/timer changes and exact layout evidence.
+The [cold-state successor](m2_h1_cold_state.md) adds the head target, delivery
+pin and payload accounting with pure reset/drain proof and unchanged disabled slabs.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and
