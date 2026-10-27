@@ -36,6 +36,8 @@ M2 slice reports: [common contract](m2_common_contract.md),
 [response guards](m2_response_guards.md), and the standalone
 [incremental multipart utility](m2_incremental_multipart.md).
 The [part-sink adapter](m2_multipart_sink.md) records the next integration slice.
+[Transport preparation](m2_transport_preparation.md) preserves separate reviewed
+components, lifetime proposals, and interrupted header-refusal drafts.
 
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
