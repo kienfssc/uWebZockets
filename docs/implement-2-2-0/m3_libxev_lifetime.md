@@ -46,8 +46,13 @@ the Codespace credential could not read those protections. Adoption then needs
 all four zon views, ledger, documentation and required project gates together.
 The archive is supplied for manual review and is not a local build overlay.
 
-This candidate does not settle registered duplicate-descriptor cleanup,
+This verified candidate does not settle registered duplicate-descriptor cleanup,
 generic adding/deleting/thread-pool cancellation, foreign IPv6 peer storage,
-or connection physical-close and slot-reuse ownership. The separate duplicate
-cleanup proposal is source-only and unimplemented. M2 transport retirement and
-M3 final provenance closure remain gated on their own complete evidence.
+or connection physical-close and slot-reuse ownership. A separate
+[registered duplicate cleanup draft](evidence/m3_libxev_dup_cleanup/README.md)
+now preserves the actual private decision, cleanup ordering, two declared pure
+tests and complete source tree. It has formatting/whitespace checks only;
+independent review, compilation and execution remain pending. It is not a
+maintained commit or adopted pin, and the earlier passing suites do not verify
+that delta. M2 transport retirement and M3 final provenance closure remain gated
+on their own complete evidence.
