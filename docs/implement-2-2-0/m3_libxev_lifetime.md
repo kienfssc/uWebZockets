@@ -74,9 +74,17 @@ passes strict fsck.
 R3 still requires explicit io_uring ExpirationInProgress handling. Fresh source
 review additionally identifies worker completion-storage reads after MPSC
 publication and missing rollback after a newly duplicated fd fails epoll ADD.
-Separate bounded maintained-backend corrections are planned before revising
-the H1 physical-close proposal. No native fault or interleaving experiment is
-needed for those source and pure-policy checks. Full H1 physical-close,
+The [reviewed worker-publication correction](evidence/m3_libxev_worker_publication/README.md)
+saves local append `179f22bc539548e024407b76d4aa39c54342e5b4`. Both workers now
+capture metadata before publication and stop accessing completion storage
+afterward. Independent review finds no actionable findings; unchanged healthy
+suites pass 155/159 with four existing skips each, and Darwin/FreeBSD UDP graphs
+compile without execution. Its bundle restores the exact commit/tree and passes
+strict fsck. Captured-loop safety relies on R2 joining workers before loop deinit.
+
+Failed-registration rollback remains a separate bounded correction before the
+next H1 physical-close design review. No native fault or interleaving experiment
+is needed for these source and pure-policy checks. Full H1 physical-close,
 generic adding/deleting/worker behavior and M3 provenance acceptance remain open.
 
 The later [normal HTTP/3 refusal check](evidence/m2_h3_refusal_live/README.md)
