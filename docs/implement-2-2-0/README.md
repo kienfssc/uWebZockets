@@ -54,6 +54,8 @@ The [typed loop-callback adapter](m2_loop_callback_adapter.md) prepares backend
 ACK classification and fixed failure fencing without activating H1 retirement.
 The [platform setup guard](m2_upload_platform.md) records the confirmed BSD
 restriction, eligible-target compilation and refusal-before-mutation proofs.
+The [coherent H1 baseline](m2_h1_baseline.md) combines the reviewed preparation
+with current Root, preserving multipart/timer changes and exact layout evidence.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and
