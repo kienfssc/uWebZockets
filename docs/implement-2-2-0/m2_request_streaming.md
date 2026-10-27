@@ -131,7 +131,9 @@ hashes, real file/pipeline ordering and ordinary drained shutdown on an owned
 io_uring server. Its initial live matrix passes 18/20 cases; the two error-path
 client failures remain explicit. The independently reviewed corrected client
 passes 21/21 against the identical server, including complete 413 responses and
-failed-begin quota reuse. Source overlays and raw evidence are saved
+failed-begin quota reuse. The producer/lifecycle extension passes 26/26, including
+metadata after binding reuse, concurrent routes and active-upload shutdown.
+Source overlays and raw evidence are saved
 on the feature branch. Full transport, multipart and final acceptance stay open.
 
 The [TLS capacity clarification](m2_tls_capacity.md) explicitly qualifies the

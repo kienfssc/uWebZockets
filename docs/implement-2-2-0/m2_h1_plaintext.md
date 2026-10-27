@@ -7,6 +7,8 @@ incrementally computed SHA256 and count. This checkpoint preserves reviewed
 code and partial live verification. M2 and production integration remain open.
 The [corrected client follow-up](evidence/m2_h1_plaintext_corrected/README.md)
 now passes all 21 cases against the identical source and server binary.
+The [producer and lifecycle extension](evidence/m2_h1_plaintext_lifecycle/README.md)
+passes all 26 cases, with independent source and live-evidence review.
 
 The [recovery archive](evidence/m2_h1_plaintext/README.md) contains the actual
 eight-file combined overlay, five existing-file preimages, component patches,
@@ -84,10 +86,24 @@ copied the actual raw results, then removed only the generated cache. The
 canonical source digest is restored. The wrapper's exit status is 1; its lost
 inner numeric status is not reconstructed as evidence.
 
+## Producer and lifecycle verification
+
+Producer metadata, cross-route admission, ordinary disconnect/shutdown and
+end-error cases now pass in the 26-case extension. The producer remained
+unfinished after the upload binding was reused: 2686976 bytes had been queued
+at that snapshot. It subsequently reached 16777313 bytes through 11 additional
+real producer calls, validating retained metadata on every call. Three routes
+were admitted simultaneously. Peer disconnect and end error released quota for
+real retries; active-upload shutdown delivered exactly one shutdown cancel for
+the accepted seven-byte prefix, followed by normal deinit and process exit.
+
+The extension's runner exits 0 with all recorded inputs unchanged. Independent
+review found no actionable evidence gaps. Its fixture uses independent
+server-lifetime producer storage; it makes no producer-abort reclamation claim.
+
 ## Remaining acceptance
 
-Finish producer metadata, cross-route,
-ordinary disconnect/shutdown and end-error cases. TLS/H2/H3 live streaming,
+TLS/H2/H3 live streaming,
 multipart transport integration, native Windows, maintained dependency
 publication/adoption and final project gates remain required. No native fault
 or cancellation-schedule experiment was run. No allocator-instrumented,

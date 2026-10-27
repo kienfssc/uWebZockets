@@ -66,6 +66,8 @@ The [plaintext implementation checkpoint](m2_h1_plaintext.md) preserves reviewed
 App/driver code, both exact 100000000-byte live uploads, real-file ordering and
 two initial client failures. Its [corrected client follow-up](evidence/m2_h1_plaintext_corrected/README.md)
 passes 21/21 against the identical server. Production integration remains open.
+The [producer/lifecycle follow-up](evidence/m2_h1_plaintext_lifecycle/README.md)
+passes 26/26, including metadata after slot reuse and active-upload shutdown.
 The [TLS capacity clarification](m2_tls_capacity.md) records the reviewed
 encrypted-receive/BIO boundary before TLS driver implementation.
 
