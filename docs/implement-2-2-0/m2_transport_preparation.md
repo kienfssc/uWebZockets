@@ -83,6 +83,11 @@ prove blocked output, flow credit, HPACK/QPACK synchronization, sibling
 isolation, complete routing/error precedence, target layouts or real clients.
 Neither draft has final independent review or permission to land alone.
 
+The subsequent [HTTP/2 checkpoint](m2_h2_refusal.md) completes additional scoped
+framing, output-pressure, sibling and capacity checks and preserves exact
+source deltas from this recovery archive. It remains isolated and unreviewed;
+the initial interrupted status above describes the original archived snapshot.
+
 Resume from the archived seed manifests and exact source snapshots, reconcile
 root's subsequent integration corrections, and complete those acceptance
 criteria. Do not treat any of these separate snapshots as an authoritative

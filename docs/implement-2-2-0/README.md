@@ -40,6 +40,8 @@ The [HTTP/1 head/body decoder](m2_body_decoder.md) records pure framing and
 buffered compatibility before transport activation.
 [Transport preparation](m2_transport_preparation.md) preserves separate reviewed
 components, lifetime proposals, and interrupted header-refusal drafts.
+The [HTTP/2 refusal checkpoint](m2_h2_refusal.md) extends its isolated draft with
+framing, output pressure, sibling, capacity and Linux32 verification.
 
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
