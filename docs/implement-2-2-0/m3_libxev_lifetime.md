@@ -61,8 +61,22 @@ Every source hash is unchanged. A complete-history bundle restores and verifies
 the exact commit/tree in an empty repository with strict fsck.
 
 This is not a maintained publication, adopted pin or runtime leak/race claim.
-Fresh R3 review finds a separate IOCP error-mapping prerequisite and requires
-explicit handling of io_uring ExpirationInProgress. Full H1 physical-close,
+The [reviewed IOCP follow-up](evidence/m3_libxev_iocp_cancel/README.md) saves local
+append commit `b2afbafa6900d147ea0dea56e33b612b18f278d4` without adopting it.
+Both native cancellation paths acknowledge FALSE with ERROR_NOT_FOUND while
+preserving all other errors and public layouts. Pure policy suites pass 30/30;
+unchanged healthy suites pass 155/159 with four existing skips in each mode.
+Windows compilation passes 8/8 steps and before/after ABI consumer assembly
+is identical; no Windows execution is claimed. Independent bounded review
+finds no actionable issues, and its complete-history bundle restores and
+passes strict fsck.
+
+R3 still requires explicit io_uring ExpirationInProgress handling. Fresh source
+review additionally identifies worker completion-storage reads after MPSC
+publication and missing rollback after a newly duplicated fd fails epoll ADD.
+Separate bounded maintained-backend corrections are planned before revising
+the H1 physical-close proposal. No native fault or interleaving experiment is
+needed for those source and pure-policy checks. Full H1 physical-close,
 generic adding/deleting/worker behavior and M3 provenance acceptance remain open.
 
 The later [normal HTTP/3 refusal check](evidence/m2_h3_refusal_live/README.md)

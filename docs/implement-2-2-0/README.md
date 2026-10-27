@@ -54,6 +54,9 @@ ingress bounds and the atomic router-to-common-state reservation handoff.
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and
 a complete recovery bundle without changing maintained refs or root pins.
+The [reviewed IOCP cancellation-result candidate](evidence/m3_libxev_iocp_cancel/README.md)
+adds missing-request classification, portable policy tests, healthy-suite and
+foreign Windows compilation evidence, preserving public errors and layouts.
 
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
