@@ -122,3 +122,12 @@ unrestricted V6 liveness claim remains rejected; no physical-close algorithm
 or live upload follows from a setup-policy proof. The combined baseline must
 retain current Root multipart, timer, fuzz and consumer changes before actual
 H1 delivery and TLS integration proceed.
+
+## Plaintext delivery checkpoint
+
+The [reviewed plaintext implementation](m2_h1_plaintext.md) now demonstrates
+both fixed-length and chunked 100000000-byte uploads, incremental matching
+hashes, real file/pipeline ordering and ordinary drained shutdown on an owned
+io_uring server. Its initial live matrix passes 18/20 cases; the two error-path
+client failures remain explicit. Source overlays and raw evidence are saved
+on the feature branch. Full transport, multipart and final acceptance stay open.

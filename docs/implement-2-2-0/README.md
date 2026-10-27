@@ -62,6 +62,9 @@ The [pure retirement policy](m2_h1_retirement_policy.md) prepares coalesced time
 boundaries and one-shot close eligibility without native callback effects.
 Its [typed invariant follow-up](evidence/m2_h1_invariant_failure/README.md)
 preserves failure-latch ordering before the new fixed inactive-phase diagnostic.
+The [plaintext implementation checkpoint](m2_h1_plaintext.md) preserves reviewed
+App/driver code, both exact 100000000-byte live uploads, real-file ordering and
+two unresolved initial client checks. Production integration remains open.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and
