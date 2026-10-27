@@ -87,6 +87,7 @@ fn exhaustive_legacy_form(request: *const uz.Request) ?uz.query.QueryParams {
 /// Compiles new sink metadata and unchanged legacy helpers without a live route.
 fn request_body_surface(allocator: std.mem.Allocator) !void {
     try multipart_surface();
+    try multipart_sink_surface();
     const begin: uz.BodyBeginFn = body_begin;
     const chunk: uz.BodyChunkFn = body_chunk;
     const end: uz.BodyEndFn = body_end;
@@ -179,6 +180,65 @@ fn multipart_surface() !void {
     }
     try parser.finish();
     if (data_bytes != 1) return error.UnexpectedPart;
+}
+
+const MultipartConsumerState = struct {
+    parts: usize = 0,
+    data_bytes: usize = 0,
+    cancellations: usize = 0,
+};
+
+fn multipart_sink_surface() !void {
+    const entity = "--a\r\nContent-Disposition: form-data; name=\"x\"\r\n\r\ny\r\n--a--";
+    var headers: [64]u8 = undefined;
+    var carry: [5]u8 = undefined;
+    var state: MultipartConsumerState = .{};
+    const begin: uz.multipart.PartBeginFn = part_begin;
+    const write: uz.multipart.PartWriteFn = part_write;
+    const end: uz.multipart.PartEndFn = part_end;
+    const cancel: uz.multipart.PartCancelFn = part_cancel;
+    const sink = uz.multipart.PartSink{
+        .context = &state,
+        .begin_part = begin,
+        .write_chunk = write,
+        .end_part = end,
+        .cancel_part = cancel,
+    };
+    var adapter = uz.multipart.MultipartSink{
+        .parser = try uz.multipart.StreamingParser.init("a", .{
+            .max_body_bytes = entity.len,
+            .max_parts = 1,
+            .max_part_headers = 1,
+        }, .{ .headers = &headers, .carry = &carry }),
+        .sink = sink,
+    };
+    const progress: uz.BodyProgress = try adapter.consume(entity);
+    if (progress.consumed != entity.len or progress.readiness != .ready) return error.UnexpectedProgress;
+    try adapter.finish();
+    adapter.cancel(.sink_failure);
+    if (state.parts != 1 or state.data_bytes != 1 or state.cancellations != 0) return error.UnexpectedPart;
+}
+
+fn part_begin(_: *anyopaque, metadata: uz.multipart.PartMeta) !uz.BodyReadiness {
+    if (!std.mem.eql(u8, metadata.name, "x")) return error.UnexpectedPart;
+    return .ready;
+}
+
+fn part_write(context: *anyopaque, input: []const u8) !uz.BodyProgress {
+    const state: *MultipartConsumerState = @ptrCast(@alignCast(context));
+    state.data_bytes += input.len;
+    return .{ .consumed = input.len, .readiness = .ready };
+}
+
+fn part_end(context: *anyopaque) !uz.BodyReadiness {
+    const state: *MultipartConsumerState = @ptrCast(@alignCast(context));
+    state.parts += 1;
+    return .ready;
+}
+
+fn part_cancel(context: *anyopaque, _: uz.BodyCancelReason) void {
+    const state: *MultipartConsumerState = @ptrCast(@alignCast(context));
+    state.cancellations += 1;
 }
 
 fn body_begin(context: *anyopaque, _: *const uz.StreamingRequest, _: uz.BodyControl) !uz.BodyBinding {

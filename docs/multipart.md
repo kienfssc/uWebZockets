@@ -61,3 +61,37 @@ Preamble and epilogue are supported. Ordinary delimiter transport padding remain
 unsupported under MP-L1 in [ADR0011](adr/0011-incremental-multipart.md); this is
 an explicit MIME subset. Existing `Request.multipart()`, `multipart.Parser`,
 `Part`, and `ChunkIterator` retain their buffered contracts and error sets.
+
+## Part sinks
+
+`uz.multipart.MultipartSink` connects parser events to an application-owned
+`uz.multipart.PartSink`. Construct it with an initialized parser and the sink's
+context and callbacks. The adapter owns that parser afterward; keep its working
+buffers and the sink context alive through outer completion or cancellation.
+
+| Callback | Contract |
+| --- | --- |
+| `begin_part(context, PartMeta)` | Returns `BodyReadiness`; success accepts the part, including when paused. Metadata is borrowed only for this callback. A failed begin owns its own cleanup. |
+| `write_chunk(context, data)` | Returns `BodyProgress` for a nonempty borrowed payload. A ready result must accept the whole chunk; a paused result may accept a prefix, including zero. |
+| `end_part(context)` | Returns `BodyReadiness` and owns that part's cleanup on success, pause, or error. It is called once. |
+| `cancel_part(context, reason)` | Releases a successfully begun part that has not reached end. It is called at most once. |
+
+Call `consume(input)` for each nonempty outer body chunk. It returns the outer
+`BodyProgress`, including framing bytes already accepted before a pause. On
+resume, reoffer only the unaccepted suffix. A paused begin or end is already
+committed and is not called again. Empty resume chunks are unnecessary.
+
+At outer EOF, call `finish()` even after a final end callback paused and was
+subsequently resumed. It validates the closing boundary and owns active-part
+cleanup on failure. On a `consume` error, call `cancel(reason)` after the part
+callback has unwound; the outer owner retains that cleanup obligation. Repeated
+cancellation is harmless, including after successful finish. Callbacks must not
+reenter the adapter or free its containing upload.
+
+An ended part receives no later `cancel_part` callback. If a paused `end_part`
+retains asynchronous work, outer terminal cleanup must stop that work before
+freeing the upload, working buffers, or sink context.
+
+The adapter performs no file I/O and supplies no automatic HTTP status. An
+application chooses its outer body callbacks, storage lifetime, response, and
+file policy. Transport-driven request streaming remains under implementation.

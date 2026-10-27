@@ -18,6 +18,7 @@ comptime {
     _ = @import("streaming_request_tests.zig");
     _ = @import("request_body_tests.zig");
     _ = @import("request_body_response_tests.zig");
+    _ = @import("multipart_sink_tests.zig");
     _ = @import("framework_tests.zig");
     _ = @import("helpers_tests.zig");
     _ = @import("http_tests.zig");

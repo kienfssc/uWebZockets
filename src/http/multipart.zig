@@ -216,3 +216,11 @@ pub const StreamingEvent = @import("multipart_streaming.zig").StreamingEvent;
 pub const StreamingStep = @import("multipart_streaming.zig").StreamingStep;
 pub const StreamingError = @import("multipart_streaming.zig").StreamingError;
 pub const StreamingParser = @import("multipart_streaming.zig").StreamingParser;
+
+/// Accepted-part callback ownership and outer body progress.
+pub const MultipartSink = @import("multipart_sink.zig").MultipartSink;
+pub const PartSink = @import("multipart_sink.zig").PartSink;
+pub const PartBeginFn = @import("multipart_sink.zig").PartBeginFn;
+pub const PartWriteFn = @import("multipart_sink.zig").PartWriteFn;
+pub const PartEndFn = @import("multipart_sink.zig").PartEndFn;
+pub const PartCancelFn = @import("multipart_sink.zig").PartCancelFn;
