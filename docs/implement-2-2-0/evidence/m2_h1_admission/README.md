@@ -20,3 +20,6 @@ red and initial missing-metadata failure are retained separately.
 
 The [report](../../m2_h1_admission.md) distinguishes this pure helper from the
 missing live driver and records its review and integration requirements.
+The [subsequent independent review](independent-review.json) checks this exact
+archive and finds no actionable findings in the helper. Actual transport
+consumption, retirement and combined integration remain open.

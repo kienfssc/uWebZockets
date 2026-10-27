@@ -1,7 +1,7 @@
 # M2: pure HTTP/1 admission preparation
 
-Status: isolated helper verified, 2026-10-27; independent review and the concrete
-HTTP/1/TLS consumer remain open. This implements the pure bounds and reservation
+Status: isolated helper verified and independently reviewed, 2026-10-27; the
+concrete HTTP/1/TLS consumer remains open. This implements pure bounds and reservation
 handoff from the accepted head/admission seam, without native I/O or callbacks.
 
 Physical ingress derives tail capacity using checked subtraction. Empty bodies
@@ -37,7 +37,10 @@ records remain; no release version changed.
 This helper is not connected to the production library. It adds no HeadTarget,
 App resolver, middleware execution, sink delivery, pending-response storage,
 read/write scheduling, TLS hook or close/retirement algorithm. The earlier
-native experiment remains stopped. Final independent review is unavailable
-under the current account usage limit. The actual driver, backend lifetime
+native experiment remains stopped. The [fresh independent review](evidence/m2_h1_admission/independent-review.json)
+finds no actionable findings: physical bounds, Router validation, single rollback
+and common-state release authority match the contract. Source hashes and raw
+recorded checks match; the reviewer ran no builds, tests or probes. Root accepts
+the bounded pure component. The actual driver, backend lifetime
 prerequisite, crypto review, live plaintext/TLS uploads, H2/H3 integration and
 combined gates remain required before exposing the prepared public surface.
