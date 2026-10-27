@@ -169,6 +169,19 @@ loop before completing. `sleep` parks a custom resume callback;
 connection-owned slot and HTTP/2 maps one slot per stream, so neither allocates.
 A disconnected peer, a reused generation, or an expired token fails closed.
 
+Each parking slot owns one delay callback. A second sleep replaces that callback
+and re-arms its timer; it does not provide simultaneous pending delays. Do not
+reuse a slot this way or rely on re-arming to expire an earlier response token:
+the current response generation remains pending until completion, cancellation,
+or reuse. HTTP/3 has no stream-owned parking node and returns TimerUnavailable.
+
+The timing wheel's exact range is 67,108,863 milliseconds, about 18.64 hours.
+Longer deadlines wait on an intrusive overflow list and re-enter the wheel when
+they come into range. The active scheduler uses a bounded 5 ms driving tick;
+that is not a wall-clock callback-latency guarantee. The
+[timer acceptance audit](implement-2-2-0/m6_evidence_platform.md) records remaining
+overflow fast-forward and response-token requirements.
+
 `ServerConfig.idle_timeout_ms` bounds a drained keep-alive connection.
 `ServerConfig.header_read_timeout_ms` bounds an incomplete HTTP/1 request head
 or body; HTTP/2 header blocks are bounded by `max_h2_header_block_size` and the
