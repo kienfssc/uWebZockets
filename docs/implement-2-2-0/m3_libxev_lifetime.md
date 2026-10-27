@@ -92,8 +92,12 @@ four existing skips each. Linux x64 layout assembly is identical, and Windows
 focused compilation passes. The bundle restores the exact commit/tree with
 strict fsck. The actual failing kernel branch remains source-proved.
 
-The revised H1 physical-close proposal now undergoes fresh design review using
-these exact local backend contracts. No native fault or interleaving experiment
+The [fresh V6 design review](evidence/m2_h1_retirement_v6/README.md) finds a
+separate FreeBSD liveness gap: worker close publication has no wakeup after the
+last timer/scheduler ends, so shutdown can wait indefinitely. Existing bounded
+candidate approvals do not prove that combined claim. The broad proposal stays
+unaccepted; a separate community-BSD activation guard is the stated default
+pending implementation and review. No native fault or interleaving experiment
 is needed for these source and pure-policy checks. Full H1 physical-close,
 generic adding/deleting/worker behavior and M3 provenance acceptance remain open.
 

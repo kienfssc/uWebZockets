@@ -62,7 +62,11 @@ native leak/cancellation/race experiment follows from it. Later bounded source
 corrections are independently reviewed and saved in the linked M3 report:
 registered duplicate cleanup, IOCP result classification and worker publication.
 The separate failed-registration rollback candidate is now reviewed and saved
-there too. The full H1 retirement design still requires fresh review.
+there too. The [fresh V6 review](evidence/m2_h1_retirement_v6/README.md) finds a
+non-Darwin kqueue worker-wakeup gap that can strand final close. The broad
+lifetime proposal remains unaccepted. Root is proceeding with explicit streaming
+setup refusal on community BSD as its default assumption; the guard still needs
+separate implementation and review. The typed loop-adapter work is independent.
 
 Root provisionally accepts a header resolver returning an unreserved BodyMatch,
 followed by an atomic reserve-to-pure-BodyState.arm handoff. No callback or I/O
