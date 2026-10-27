@@ -36,11 +36,16 @@ The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,
 release tag, and publication.
 
-The user requested implementation in the original repository's local feature
-branch, with manual review later and no fork workflow. That instruction
-supersedes the plan's per-milestone PR requirement. `origin` points to
-`https://github.com/farbenbuilds/uWebZockets`; manual review happens later.
-The user subsequently requested pushing each commit to that feature branch.
-The first original-repository push returned HTTP 403: the current Codespace
-account, `kienfssc`, has `push: false`. Local implementation continues while
-write access is corrected; no fork is a delivery fallback.
+On 2026-10-27 the user authorized delivery to the existing
+[kienfssc/uWebZockets feature branch](https://github.com/kienfssc/uWebZockets/tree/feat/implement-2-2-0)
+and will open the pull request manually. This supersedes the earlier
+original-repository-only instruction and the plan's per-milestone PR workflow.
+The fork's parent is `farbenbuilds/uWebZockets`; its feature branch was
+fast-forwarded from `4e49d2697a5ade22cc95d4d3b43e125c37366d1d` to
+`00c85640de26823f02a9c5d1fb82ccecb832aea4`, then verified with `git ls-remote`.
+
+Push each subsequent commit to the `fork` remote. The local branch tracks
+`fork/feat/implement-2-2-0`; `origin` and `upstream` retain the original
+repository URL. The Codespace account has write access to the fork and read
+access to the original repository. Earlier original-repository HTTP 403
+results remain historical evidence; remote delivery is now available.
