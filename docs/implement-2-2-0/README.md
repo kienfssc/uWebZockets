@@ -16,7 +16,7 @@ results and release actions are recorded only when actually performed.
 | M2 | Request streaming and incremental multipart | Common contract/response guards verified; multipart utility integrated; intake open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
-| M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | Pending |
+| M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | [Structural ownership](m5_structural_ownership.md) |
 | M6 | Performance, platform, GRO, and API decisions | C5 decisions recorded; other work open | [Optional APIs](m6_optional_api_decisions.md) |
 | M7 | Release metadata and final verification | Awaiting M1 through M6 | Pending |
 
