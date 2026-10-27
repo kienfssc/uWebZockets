@@ -9,6 +9,7 @@ map; each linked protocol document has the wire-level detail.
 - [websocket.md](websocket.md) — RFC 6455, compression, pub/sub
 - [json_rpc.md](json_rpc.md) — JSON-RPC 2.0
 - [client.md](client.md) — outbound HTTP/1.1 client
+- [multipart.md](multipart.md) — bounded incremental multipart events and acknowledgement
 - [memory_model.md](memory_model.md) — capacities, slab layout, backpressure
 - [deployment.md](deployment.md) — production checklist
 

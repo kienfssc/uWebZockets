@@ -86,6 +86,7 @@ fn exhaustive_legacy_form(request: *const uz.Request) ?uz.query.QueryParams {
 
 /// Compiles new sink metadata and unchanged legacy helpers without a live route.
 fn request_body_surface(allocator: std.mem.Allocator) !void {
+    try multipart_surface();
     const begin: uz.BodyBeginFn = body_begin;
     const chunk: uz.BodyChunkFn = body_chunk;
     const end: uz.BodyEndFn = body_end;
@@ -116,6 +117,68 @@ fn request_body_surface(allocator: std.mem.Allocator) !void {
     if (result) |_| return error.UnexpectedBufferedBody else |err| switch (err) {
         error.BodyNotBuffered => {},
     }
+}
+
+const LegacyMultipartError = error{
+    MissingContentType,
+    NotMultipartFormData,
+    MissingMultipartBoundary,
+    InvalidMultipartBoundary,
+};
+
+fn narrow_legacy_multipart(request: *const uz.Request) LegacyMultipartError!uz.multipart.Parser {
+    return try request.multipart();
+}
+
+fn exhaustive_legacy_multipart(request: *const uz.Request) ?uz.multipart.Parser {
+    return request.multipart() catch |err| switch (err) {
+        error.MissingContentType => null,
+        error.NotMultipartFormData => null,
+        error.MissingMultipartBoundary => null,
+        error.InvalidMultipartBoundary => null,
+    };
+}
+
+/// Exercises incremental events through the supported package namespace.
+fn multipart_surface() !void {
+    const entity = "--a\r\nContent-Disposition: form-data; name=\"x\"\r\n\r\ny\r\n--a--";
+    var request = uz.Request{ .body = entity };
+    try request.add_header("Content-Type", "multipart/form-data; boundary=a");
+    var buffered = try narrow_legacy_multipart(&request);
+    const part = (try buffered.next_part()) orelse return error.MissingPart;
+    if (!std.mem.eql(u8, part.data, "y")) return error.UnexpectedPart;
+    if (exhaustive_legacy_multipart(&request) == null) return error.MissingPart;
+
+    var headers: [64]u8 = undefined;
+    var carry: [5]u8 = undefined;
+    const limits = uz.multipart.StreamingLimits{
+        .max_body_bytes = entity.len,
+        .max_parts = 1,
+        .max_part_headers = 1,
+    };
+    const storage = uz.multipart.StreamingStorage{ .headers = &headers, .carry = &carry };
+    var parser = try uz.multipart.StreamingParser.init("a", limits, storage);
+    var offset: usize = 0;
+    var data_bytes: usize = 0;
+    while (offset < entity.len) {
+        const step: uz.multipart.StreamingStep = try parser.next(entity[offset..]);
+        offset += step.consumed;
+        const event: uz.multipart.StreamingEvent = step.event orelse continue;
+        switch (event) {
+            .part_begin => |metadata| {
+                const view: uz.multipart.PartMeta = metadata;
+                if (!std.mem.eql(u8, view.name, "x")) return error.UnexpectedPart;
+            },
+            .part_data => |data| {
+                if (!std.mem.eql(u8, data, "y")) return error.UnexpectedPart;
+                data_bytes += data.len;
+                offset += try parser.accept_data(data.len);
+            },
+            .part_end => {},
+        }
+    }
+    try parser.finish();
+    if (data_bytes != 1) return error.UnexpectedPart;
 }
 
 fn body_begin(context: *anyopaque, _: *const uz.StreamingRequest, _: uz.BodyControl) !uz.BodyBinding {

@@ -13,7 +13,7 @@ results and release actions are recorded only when actually performed.
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | Complete locally; external profiles re-declared | [Streaming, static, TLS](m1_streaming_static_tls.md) |
-| M2 | Request streaming and incremental multipart | Common contract/response guards verified; intake open | [Request streaming](m2_request_streaming.md) |
+| M2 | Request streaming and incremental multipart | Common contract/response guards verified; multipart utility integrated; intake open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | Pending |
@@ -31,6 +31,10 @@ The [HTTP/3 backend](m1_file_http3.md) records copied partial-write ownership.
 [Static delivery](m1_static_streaming.md) records real 100 MiB TLS/H2 downloads.
 [Opt-in sidecars](m1_static_sidecars.md) record fresh representation selection and 752/752 native tests.
 [The public interop matrix](m1_static_interop.md) records its harness and live-result boundary.
+
+M2 slice reports: [common contract](m2_common_contract.md),
+[response guards](m2_response_guards.md), and the standalone
+[incremental multipart utility](m2_incremental_multipart.md).
 
 The original plan remains the acceptance contract. Reports supplement it;
 they do not reduce its scope. The maintainer owns the final reviewed merge,

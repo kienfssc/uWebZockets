@@ -286,6 +286,10 @@ CORS and security-header middleware, and SSE.
 Every helper reuses the existing bounded buffers and stays off the heap on the
 request path. For the full helper inventory, see [api.md](api.md).
 
+The standalone [incremental multipart parser](multipart.md) accepts arriving
+chunks with bounded caller storage and explicit payload acknowledgement. It
+does not depend on the pending request-streaming transport adapters.
+
 ## Integration with another parser
 
 Integration code may attach borrowed `extra_param_*` or `extra_header_*` slices

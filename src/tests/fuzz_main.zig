@@ -406,3 +406,32 @@ fn fuzz_zslay_receive(smith: *std.testing.Smith) !void {
 
     try std.testing.expect(steps < input_len * 3 + 32);
 }
+
+test "fuzz: multipart streaming preserves bytes across relocated chunks and pauses" {
+    try std.testing.fuzz({}, fuzz_multipart_streaming, .{
+        .corpus = &.{
+            "\x00--abc--",
+            "\x00preamble\r\n--abc\r\nContent-Disposition: form-data; name=x\r\n\r\ndata\r\n--abc--\r\nepilogue",
+            "\x00--abc\r\nContent-Disposition: form-data; name=x\r\n\r\n\r\n--abcX\r\r\n--abc--",
+            "\x00--abc\r\nContent-Disposition: form-data; name=x\r\n\r\ntruncated",
+            "\x01--" ++ ("b" ** 70) ++ "--",
+            "\x10--abc\r\nContent-Disposition: form-data; name=x\r\n\r\nx\r\n--abc--",
+            "\x02--abc\r\nContent-Disposition: form-data; name=x\r\n\r\nx\r\n--abc--",
+        },
+    });
+}
+
+fn fuzz_multipart_streaming(_: void, smith: *std.testing.Smith) !void {
+    @disableInstrumentation();
+    var input: [1024]u8 = undefined;
+    const length: usize = @intCast(smith.sliceWeightedBytes(&input, &.{
+        .rangeAtMost(u8, 0, 255, 1),
+        .rangeAtMost(u8, 0x20, 0x7e, 4),
+        .value(u8, '\r', 8),
+        .value(u8, '\n', 8),
+        .value(u8, '-', 8),
+        .value(u8, '"', 4),
+        .value(u8, ';', 4),
+    }));
+    support.multipart_streaming_fuzz.fuzz_one(input[0..length]);
+}

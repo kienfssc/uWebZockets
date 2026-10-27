@@ -3,7 +3,8 @@
 Status: compatibility-preserving architecture accepted, 2026-10-26.
 M1 is complete locally; the [common contract](m2_common_contract.md) is
 implemented and verified. [Response guards](m2_response_guards.md) also pass
-the combined gates. Admission and transport implementation remain open.
+the combined gates. The standalone [incremental multipart utility](m2_incremental_multipart.md)
+is integrated separately. Admission and transport implementation remain open.
 No request-streaming capability
 is implemented or advertised by this report.
 
@@ -103,5 +104,6 @@ application payload. Part cleanup is once-only, including paused terminal events
 helper error sets, distinct new typed refusals and the explicit init carry
 minimum. MP-L1 re-declares ordinary delimiter padding as unsupported with a
 reviewed restoration criterion. No general RFC conformance or implementation
-result follows from this design. Isolated parser preparation may proceed;
-production multipart integration follows the common sink and transport gates.
+result follows from this design. The standalone parser checkpoint records its
+own implementation and verification; its part-sink adapter and request transport
+integration remain separate gates.

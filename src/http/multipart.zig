@@ -208,3 +208,11 @@ fn valid_boundary(boundary: []const u8) bool {
     }
     return true;
 }
+
+pub const StreamingLimits = @import("multipart_streaming.zig").StreamingLimits;
+pub const StreamingStorage = @import("multipart_streaming.zig").StreamingStorage;
+pub const PartMeta = @import("multipart_streaming.zig").PartMeta;
+pub const StreamingEvent = @import("multipart_streaming.zig").StreamingEvent;
+pub const StreamingStep = @import("multipart_streaming.zig").StreamingStep;
+pub const StreamingError = @import("multipart_streaming.zig").StreamingError;
+pub const StreamingParser = @import("multipart_streaming.zig").StreamingParser;

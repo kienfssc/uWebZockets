@@ -1,4 +1,5 @@
 comptime {
+    _ = @import("multipart_streaming_tests.zig");
     _ = @import("bleeding_edge_tests.zig");
     _ = @import("c_api_tests.zig");
     _ = @import("c_tests.zig");
@@ -8,6 +9,7 @@ comptime {
     _ = @import("dev_log_tests.zig");
     _ = @import("core_tests.zig");
     _ = @import("fuzz_main.zig");
+    _ = @import("multipart_large_tests.zig");
     _ = @import("file_stream_tests.zig");
     _ = @import("file_stream_http2_tests.zig");
     _ = @import("file_stream_http3_tests.zig");

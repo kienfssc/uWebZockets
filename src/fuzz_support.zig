@@ -5,3 +5,4 @@ pub const query = @import("http/query.zig");
 pub const quic_packet = @import("quic/packet.zig");
 pub const quic_webtransport = @import("quic/webtransport.zig");
 pub const ws_mask = @import("ws/mask.zig");
+pub const multipart_streaming = @import("fuzz/multipart_streaming.zig");

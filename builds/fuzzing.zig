@@ -44,6 +44,11 @@ pub fn inject(
     const quic_object = add_fuzz_object(b, "quic_packets", "fuzz/quic_packets.zig", target, optimize, fuzz_support);
     const query_object = add_fuzz_object(b, "query_parse", "fuzz/query_parse.zig", target, optimize, fuzz_support);
     const cookie_object = add_fuzz_object(b, "cookie_parse", "fuzz/cookie_parse.zig", target, optimize, fuzz_support);
+    const multipart_object = add_fuzz_object(b, "multipart_streaming", "fuzz/multipart_streaming.zig", target, optimize, fuzz_support);
+    const install_multipart = b.addInstallArtifact(multipart_object, .{
+        .dest_dir = .{ .override = .{ .custom = "oss-fuzz" } },
+        .dest_sub_path = "multipart_streaming.o",
+    });
     const install_http = b.addInstallArtifact(http_object, .{
         .dest_dir = .{ .override = .{ .custom = "oss-fuzz" } },
         .dest_sub_path = "http_framing.o",
@@ -71,12 +76,14 @@ pub fn inject(
     coverage_check.addFileArg(quic_object.getEmittedBin());
     coverage_check.addFileArg(query_object.getEmittedBin());
     coverage_check.addFileArg(cookie_object.getEmittedBin());
+    coverage_check.addFileArg(multipart_object.getEmittedBin());
     const object_step = b.step("oss-fuzz-objects", "Build libFuzzer ABI objects with sanitizer coverage");
     object_step.dependOn(&install_http.step);
     object_step.dependOn(&install_ws.step);
     object_step.dependOn(&install_quic.step);
     object_step.dependOn(&install_query.step);
     object_step.dependOn(&install_cookie.step);
+    object_step.dependOn(&install_multipart.step);
     object_step.dependOn(&coverage_check.step);
 
     const http_smoke = add_smoke(b, "http_framing_smoke", "fuzz/smoke_http.zig", target, optimize, fuzz_support);
@@ -84,12 +91,20 @@ pub fn inject(
     const quic_smoke = add_smoke(b, "quic_packets_smoke", "fuzz/smoke_quic.zig", target, optimize, fuzz_support);
     const query_smoke = add_smoke(b, "query_parse_smoke", "fuzz/smoke_query.zig", target, optimize, fuzz_support);
     const cookie_smoke = add_smoke(b, "cookie_parse_smoke", "fuzz/smoke_cookie.zig", target, optimize, fuzz_support);
+    const multipart_smoke = add_smoke(b, "multipart_streaming_smoke", "fuzz/smoke_multipart.zig", target, optimize, fuzz_support);
+    const install_multipart_smoke = b.addInstallArtifact(multipart_smoke, .{
+        .dest_dir = .{ .override = .{ .custom = "oss-fuzz" } },
+        .dest_sub_path = "multipart_streaming_smoke",
+    });
+    const run_multipart = sanitizers.add_run_artifact(b, multipart_smoke, sanitizer.run);
     const run_http = sanitizers.add_run_artifact(b, http_smoke, sanitizer.run);
     const run_ws = sanitizers.add_run_artifact(b, ws_smoke, sanitizer.run);
     const run_quic = sanitizers.add_run_artifact(b, quic_smoke, sanitizer.run);
     const run_query = sanitizers.add_run_artifact(b, query_smoke, sanitizer.run);
     const run_cookie = sanitizers.add_run_artifact(b, cookie_smoke, sanitizer.run);
     const smoke_step = b.step("oss-fuzz-smoke", "Run deterministic protocol-boundary fuzz smoke inputs");
+    smoke_step.dependOn(&install_multipart_smoke.step);
+    smoke_step.dependOn(&run_multipart.step);
     smoke_step.dependOn(&run_http.step);
     smoke_step.dependOn(&run_ws.step);
     smoke_step.dependOn(&run_quic.step);

@@ -25,7 +25,7 @@ zig build oss-fuzz-objects \
 "$CC" -O2 -c "$project_dir/oss-fuzz/zig_sancov_shim.c" \
     -o "$install_dir/oss-fuzz/zig_sancov_shim.o"
 
-for target in http_framing ws_masking quic_packets query_parse cookie_parse; do
+for target in http_framing ws_masking quic_packets query_parse cookie_parse multipart_streaming; do
     # OSS-Fuzz exposes compiler arguments as space-delimited strings.
     # shellcheck disable=SC2086
     "$CXX" $CXXFLAGS \
