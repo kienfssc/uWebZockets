@@ -52,6 +52,8 @@ The [pure HTTP/1 admission checkpoint](m2_h1_admission.md) verifies physical
 ingress bounds and the atomic router-to-common-state reservation handoff.
 The [typed loop-callback adapter](m2_loop_callback_adapter.md) prepares backend
 ACK classification and fixed failure fencing without activating H1 retirement.
+The [platform setup guard](m2_upload_platform.md) records the confirmed BSD
+restriction, eligible-target compilation and refusal-before-mutation proofs.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and

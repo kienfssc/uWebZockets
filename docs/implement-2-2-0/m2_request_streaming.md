@@ -108,3 +108,17 @@ reviewed restoration criterion. No general RFC conformance or implementation
 result follows from this design. The standalone parser checkpoint records its
 own implementation and verification; its part-sink adapter and request transport
 integration remain separate gates.
+
+## Confirmed platform activation scope
+
+The user confirmed setup refusal for request streaming on community BSD until
+worker wakeups and native validation are available. The
+[isolated platform guard](m2_upload_platform.md) is implemented and independently
+reviewed. Linux, macOS and Windows are eligible; native Windows release evidence
+remains mandatory. Disabled and generic pure contracts remain available.
+
+This bounds the subsequent H1 retirement implementation plan. Its historical
+unrestricted V6 liveness claim remains rejected; no physical-close algorithm
+or live upload follows from a setup-policy proof. The combined baseline must
+retain current Root multipart, timer, fuzz and consumer changes before actual
+H1 delivery and TLS integration proceed.

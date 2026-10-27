@@ -37,7 +37,8 @@ or production adoption. Future integration must preserve the later root timer
 correction and reconcile current tests.
 
 The [V6 retirement review](evidence/m2_h1_retirement_v6/README.md) still blocks
-the broad close/reuse claim on non-Darwin kqueue. A separate activation guard
-is being implemented under the stated community-BSD default. This checkpoint
+the broad close/reuse claim on non-Darwin kqueue. The separate
+[activation guard](m2_upload_platform.md) is verified and reviewed under the
+user-confirmed community-BSD setup restriction. This checkpoint
 adds no H1 consumer, physical-close algorithm, TLS hooks, native cancellation
 probe or complete M2 acceptance.

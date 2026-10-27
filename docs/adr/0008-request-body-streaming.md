@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-10-26
-- Revision: compatibility-preserving typed request view, 2026-10-26
+- Revision: typed request view and platform activation guard, 2026-10-27
 - Deciders: transport, HTTP, router, QUIC, and root integrator
 - Release: 2.2.0
 
@@ -32,6 +32,15 @@ The route-level lifetime, framing, flow-control and capacity decisions remain.
 
 Add ServerConfig.stream_request_bodies, default false. Enabling it reserves
 bounded startup storage; registration cannot resize a running slab.
+Setup eligibility is limited to Linux, macOS, and Windows. Enabled setup on
+other targets returns the existing InvalidTransportConfiguration error before
+allocation or owner binding; community BSD activation requires worker wakeups
+and native validation first. The user confirmed this scope on 2026-10-27.
+Eligibility does not establish runtime support, and the Windows release-job
+gate remains in force. Disabled configurations, generic loops, pure decoders,
+body registries, and BodyState retain their existing contracts. The
+[isolated guard checkpoint](../implement-2-2-0/m2_upload_platform.md) records
+verification; production transport integration remains separate.
 route_body returns BodyStreamingDisabled when the feature was not enabled.
 It borrows an immutable BodyRoute whose lifetime covers the App:
 

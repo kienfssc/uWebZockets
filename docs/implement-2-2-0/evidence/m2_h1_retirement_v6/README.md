@@ -18,9 +18,11 @@ descriptor closes, but its callback cannot release the slot. V6 therefore does
 not establish its broad finite-close claim. The reviewer ran no builds, tests,
 native probes or mutations.
 
-Root surfaced a scope choice and is proceeding with explicit streaming setup
-refusal on community BSD as the default. That guard requires its own concrete
-implementation and review; restoration requires working worker wakeups and
-native validation. This does not alter the existing buffered path. The typed
-loop-adapter slice can proceed independently. No fourth full retirement review
-or lifetime activation is implied by this checkpoint.
+The user subsequently confirmed explicit streaming setup refusal on community
+BSD. The separate [activation guard](../../m2_upload_platform.md) is now verified
+and independently reviewed. Restoration requires working worker wakeups and
+native validation. Root accepts the V6 design only as a subsequent implementation
+plan within that enforced eligibility and its retained TCP operation contracts;
+the unrestricted liveness claim above remains rejected. The new checkpoint
+records the exact bounded contract. No fourth full retirement review or lifetime
+activation is implied, and this historical archive remains unchanged.
