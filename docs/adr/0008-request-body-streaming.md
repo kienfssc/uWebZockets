@@ -250,9 +250,21 @@ behavior is preserved. Malformed/overlong framing and trailer bounds fail with
 
 Keep logical counters separate from buffer offsets. Preserve following pipeline
 bytes and suspend dispatch through upload/response ownership. Cap enabled-path
-socket reads and SSL_read at min(8192,free_ingress), even before admission, so
-no unretained stack-buffer suffix can remain after a pause. A full retained
-window pauses reads; it is not by itself a body-limit error.
+raw TCP reads and SSL_read at min(8192,free_ingress), even before admission, so
+no unretained plaintext suffix can remain after a pause. Never call SSL_read
+with zero capacity. A full retained window pauses reads; it is not by itself a
+body-limit error.
+
+For selected TLS HTTP/1, positive plaintext capacity and readiness gate new
+encrypted receives; their byte count is min(8192,the network BIO write guarantee).
+The existing 32 KiB BIO retains ciphertext independently of plaintext ingress.
+Sample that guarantee immediately before submission or rearm. Preserve one
+active receive, one inbound BIO writer and the same BIO through retirement, so
+an already submitted receive may retain its reserved ciphertext after a pause
+without extracting plaintext or rearming. Handshake receives and selected
+HTTP/2/WebSocket paths retain the BIO bound without the HTTP/1 window gate.
+This ciphertext exception avoids tiny socket reads while assembling a TLS
+record; it adds no spill buffer and does not relax SSL_read's plaintext bound.
 
 Pause socket reads and TLS plaintext extraction while preserving BIO contents.
 Resume consumes retained plaintext first. An upload pause retains idle-timeout

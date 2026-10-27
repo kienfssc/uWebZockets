@@ -133,3 +133,9 @@ client failures remain explicit. The independently reviewed corrected client
 passes 21/21 against the identical server, including complete 413 responses and
 failed-begin quota reuse. Source overlays and raw evidence are saved
 on the feature branch. Full transport, multipart and final acceptance stay open.
+
+The [TLS capacity clarification](m2_tls_capacity.md) explicitly qualifies the
+ADR's raw-socket bound for encrypted receives. Existing BIO capacity bounds
+ciphertext while the HTTP window continues to bound SSL_read. Independent
+source review accepts the reservation requirements; concrete implementation
+and TLS upload verification remain open.
