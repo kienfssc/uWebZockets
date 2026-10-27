@@ -141,3 +141,8 @@ ADR's raw-socket bound for encrypted receives. Existing BIO capacity bounds
 ciphertext while the HTTP window continues to bound SSL_read. Independent
 source review accepts the reservation requirements; concrete implementation
 and TLS upload verification remain open.
+
+The [TLS driver checkpoint](m2_tls_driver.md) now preserves implemented,
+independently reviewed extraction/receive/resume code with 27 focused tests and
+three-target compilation. Its new TLS client matrix has not run. An inherited
+graceful shutdown retry gap is tracked separately before strict live EOF checks.

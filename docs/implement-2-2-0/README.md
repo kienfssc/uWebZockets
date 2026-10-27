@@ -12,7 +12,7 @@ results and release actions are recorded only when actually performed.
 | Milestone | Scope | State | Report |
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
-| M1 | Response streaming, static delivery, TLS payloads | Complete locally; external profiles re-declared | [Streaming, static, TLS](m1_streaming_static_tls.md) |
+| M1 | Response streaming, static delivery, TLS payloads | TLS closure follow-up open; external profiles re-declared | [Streaming, static, TLS](m1_streaming_static_tls.md) |
 | M2 | Request streaming and incremental multipart | Plaintext live matrix passes; remaining transport acceptance open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
@@ -70,6 +70,8 @@ The [producer/lifecycle follow-up](evidence/m2_h1_plaintext_lifecycle/README.md)
 passes 26/26, including metadata after slot reuse and active-upload shutdown.
 The [TLS capacity clarification](m2_tls_capacity.md) records the reviewed
 encrypted-receive/BIO boundary before TLS driver implementation.
+The [TLS driver checkpoint](m2_tls_driver.md) preserves reviewed code, 27 focused
+tests and the inherited close-notify retry finding; live TLS delivery is pending.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and

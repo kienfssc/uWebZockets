@@ -275,3 +275,14 @@ official throughput/global-allocation claim. Default body/queue/record limits
 and dependency pins remain bounded as documented. M2 can now proceed through
 its compatibility revision and request/multipart implementation; M3 and the
 remaining release milestones retain their own open requirements.
+
+## TLS closure follow-up, 2026-10-27
+
+The M2 TLS audit identified an inherited close-notify retry gap: shutdown is
+marked started before SSL_shutdown, and WANT_WRITE is not retried after output
+progress. A successful response under BIO pressure can therefore close without
+an authenticated TLS EOF. The [source-bound driver checkpoint](m2_tls_driver.md)
+retains the finding; a separate correction is being reviewed. This local closure
+follow-up is open until the correction and strict owned TLS client evidence pass.
+Earlier body/hash/benchmark results remain historical evidence with their original
+scope; they do not establish this missing shutdown behavior.
