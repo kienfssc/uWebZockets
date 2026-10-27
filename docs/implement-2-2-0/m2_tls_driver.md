@@ -2,9 +2,9 @@
 
 The isolated TLS driver is implemented and independently source-reviewed.
 It reuses the plaintext upload state machine for decrypted HTTP/1 bytes with
-separate BIO receive and plaintext extraction bounds. New live TLS uploads
-remain unverified; the public fixture and inherited shutdown correction are
-separate follow-ups.
+separate BIO receive and plaintext extraction bounds. The
+[shutdown successor](m1_tls_shutdown.md) and [strict live TLS follow-up](m2_tls_live.md)
+now pass; this report retains the original v3 component's scope.
 
 The [recovery archive](evidence/m2_tls_driver/README.md) preserves the actual
 three-file overlay, preimages, behavioral red/green evidence, complete checks,
@@ -40,7 +40,7 @@ the next real completion. SSL_want is not used as persistent retry state.
 - Full centralized semantic compilation passes native, macOS and Windows.
 - Full-directory formatting, conventions, version, graph and source audits pass.
 - Independent transport/spec/quality/maintainability and crypto reviews approve
-  the component source; no new TLS upload client has run.
+  the component source. Later enabled-client results are recorded separately.
 
 All 1023 inputs are bound to source digest
 `2498622e3a120c6fd0cfee575ad1223b3961ce9e22cbeb9ba39b3d1d59be2cf7`.
@@ -52,11 +52,13 @@ authenticated EOF, pressure behavior or native Windows operation.
 The closure audit found that begin_tls_shutdown marks its stage before
 SSL_shutdown and never retries WANT_WRITE. Under BIO pressure, a successful
 HTTP response can therefore close without close-notify. The source report in
-the archive records the exact pinned-code basis. A separate frozen successor
-is being reviewed; strict successful TLS client EOF checks remain mandatory.
+the archive records the exact pinned-code basis. The separate
+[frozen successor](m1_tls_shutdown.md) is reviewed and passes strict successful
+TLS client EOF checks in the [live follow-up](m2_tls_live.md).
 Intentional failed-begin/end-error aborts retain their separate contract.
 
-Live exact 100000000-byte fixed/chunked TLS uploads, small ingress versus
-records, retained-data resume, protocol selection, graceful-close evidence,
-constructor integration, sanitizers, maintained adoption and final M2 gates
-remain open. No global liveness or allocator-wide claim follows here.
+The follow-up establishes ordinary live exact 100000000-byte fixed/chunked TLS
+uploads, small ingress versus actual records, retained-data resume, protocol
+selection, graceful-close evidence and configured constructor integration.
+Genuine early data, sanitizers, maintained adoption and final M2 gates remain
+open. No global liveness or allocator-wide claim follows here.

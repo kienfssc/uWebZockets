@@ -282,7 +282,9 @@ The M2 TLS audit identified an inherited close-notify retry gap: shutdown is
 marked started before SSL_shutdown, and WANT_WRITE is not retried after output
 progress. A successful response under BIO pressure can therefore close without
 an authenticated TLS EOF. The [source-bound driver checkpoint](m2_tls_driver.md)
-retains the finding; a separate correction is being reviewed. This local closure
-follow-up is open until the correction and strict owned TLS client evidence pass.
+retains the finding. The [reviewed shutdown successor](m1_tls_shutdown.md) now
+passes its component checks and [strict owned TLS clients](m2_tls_live.md) pass
+37/37 through each of the cluster and single-App paths. Adoption into production
+source and authenticated graceful early-data closure remain open.
 Earlier body/hash/benchmark results remain historical evidence with their original
 scope; they do not establish this missing shutdown behavior.

@@ -12,8 +12,8 @@ results and release actions are recorded only when actually performed.
 | Milestone | Scope | State | Report |
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
-| M1 | Response streaming, static delivery, TLS payloads | TLS closure follow-up open; external profiles re-declared | [Streaming, static, TLS](m1_streaming_static_tls.md) |
-| M2 | Request streaming and incremental multipart | Plaintext live matrix passes; remaining transport acceptance open | [Request streaming](m2_request_streaming.md) |
+| M1 | Response streaming, static delivery, TLS payloads | TLS closure successor verified; adoption and external profiles open | [Streaming, static, TLS](m1_streaming_static_tls.md) |
+| M2 | Request streaming and incremental multipart | Plaintext and ordinary TLS live matrices pass; remaining transport acceptance open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | [Structural ownership](m5_structural_ownership.md) |
@@ -70,8 +70,12 @@ The [producer/lifecycle follow-up](evidence/m2_h1_plaintext_lifecycle/README.md)
 passes 26/26, including metadata after slot reuse and active-upload shutdown.
 The [TLS capacity clarification](m2_tls_capacity.md) records the reviewed
 encrypted-receive/BIO boundary before TLS driver implementation.
-The [TLS driver checkpoint](m2_tls_driver.md) preserves reviewed code, 27 focused
-tests and the inherited close-notify retry finding; live TLS delivery is pending.
+The [TLS driver checkpoint](m2_tls_driver.md) preserves reviewed code and 27
+focused tests. Its [shutdown successor](m1_tls_shutdown.md) corrects the inherited
+close-notify retry finding. The [configured HTTPS constructors](m2_configured_https.md)
+preserve single-App streaming configuration. The [strict live TLS matrix](m2_tls_live.md)
+passes 37/37 through the cluster and 37/37 through the configured single App,
+including both exact 100000000-byte framings. Production adoption remains open.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and
