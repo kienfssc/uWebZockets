@@ -10,7 +10,7 @@ performance, GRO activation or native Windows claim follows from this report.
 | C2 receive GRO | No receive-side implementation in this checkpoint | Ancillary parsing, segment delivery, burst test, real H3 gates and cost evidence |
 | C3 HttpArena async | Existing external boundary in the M1 report | Authorized external adapter change, validation and official fresh results, or its dated re-declaration |
 | C5 optional APIs | [Three decisions](m6_optional_api_decisions.md) with scoped review | Reopen only against their named requirements |
-| C6 timers | Source audit, existing wheel tests and isolated overflow correction below | Token semantics, native parked H2 reset coverage, independent review and combined integration |
+| C6 timers | Source audit and reviewed integrated overflow correction below | Token semantics, native parked H2 reset coverage and remaining C6 integration |
 | C13 provenance/platform | [Current-pin recovery archives](evidence/m3_pin_archives/README.md) and per-checkpoint cross compilation | Final pins, exact mirrors, second machine and native Windows release job |
 
 ## C1 re-declaration
@@ -47,17 +47,25 @@ scheduler regression coverage remains in the full suite.
 
 A new pure regression exposes a narrower missed case: when a later overflow
 entry is the list head, one large advance can miss an earlier due entry behind
-it. The current next-event decision examines only the head. A preliminary test
+it. The old next-event decision examined only the head. A preliminary test
 that first advanced near the earlier deadline passed; its original source and
 result are retained. The corrected single-advance test fails before the fix.
 
-An isolated draft scans every overflow entry for the earliest migration time,
-without changing storage, callback/count transitions, allocation or I/O. All
-seven wheel tests pass in Debug and ReleaseSafe after that correction. It is
-archived for review, not integrated: independent review and root combined gates
-are still required. These scalar-deadline tests execute the real Wheel code;
-they are not native clock, cancellation, crash or race experiments, and imply
-no measured wall-clock delay or performance improvement.
+The [integrated correction](evidence/m6_timer_integrated/README.md) scans every
+overflow entry for the earliest migration time, without changing storage,
+callback/count transitions, allocation or I/O. The central regression reproduces
+the actual root failure, then passes alongside the six unchanged wheel cases in
+Debug and ReleaseSafe. Independent review resolves the draft's test placement
+and red-source attribution findings. The historical archive stays immutable;
+an explicit followup distinguishes the passing first probe from the failing
+single-leap source.
+
+All root checks pass: native and sanitizer suites each pass 852/852, ReleaseSafe
+compilation 20/20 steps and default build 47/47, with 263 source identities
+unchanged. All dependency pins stay unchanged. These scalar-deadline cases are
+not new native clock, cancellation, crash or race experiments and imply no
+measured wall-clock delay or performance improvement. The scan is linear in
+overflow entries per decision; this does not close the whole C6 row.
 
 The source audit also finds a plan/API mismatch. Repeating AsyncResponse.sleep
 replaces one parked callback and re-arms the same node, but does not regenerate

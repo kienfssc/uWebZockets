@@ -30,6 +30,8 @@ uses Semantic Versioning.
 
 ### Fixed
 
+- Timing-wheel overflow ordering no longer skips an earlier due timer behind
+  a later entry when advancing directly across a large interval.
 - Response producers fail closed when they return `.done` without successfully
   calling `end_chunks`. HTTP/2 resets only the affected stream; HTTP/3 returns
   500 before headers or closes an already-started stream. A producer that
