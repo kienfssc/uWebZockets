@@ -50,8 +50,10 @@ capacity guarantees.
 R3 proposes two fresh retirement timer stages per direction, target callback
 pins, and cancellation flags retained through acknowledgement callback frames.
 It never closes from the acknowledgement callback. The final timer tail must
-be release-safe on each backend. New callback-level failure handling and the
-full physical-close proof remain unimplemented and unaccepted.
+be release-safe on each backend. The [typed callback adapter](m2_loop_callback_adapter.md)
+is now separately prepared and independently reviewed, with pure policy and
+compile-only fatal-path evidence. The physical-close algorithm and its full
+proof remain unimplemented and unaccepted.
 
 The maintained epoll dead-target candidate is archived separately in
 [M3](m3_libxev_lifetime.md). It does not resolve owned duplicate cleanup.

@@ -50,6 +50,8 @@ Its [live HTTP/3 follow-up](evidence/m2_h3_refusal_live/README.md) records norma
 refusal, a healthy sibling and reuse with a reviewed test-only libxev override.
 The [pure HTTP/1 admission checkpoint](m2_h1_admission.md) verifies physical
 ingress bounds and the atomic router-to-common-state reservation handoff.
+The [typed loop-callback adapter](m2_loop_callback_adapter.md) prepares backend
+ACK classification and fixed failure fencing without activating H1 retirement.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and
