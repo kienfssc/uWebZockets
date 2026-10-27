@@ -82,8 +82,18 @@ suites pass 155/159 with four existing skips each, and Darwin/FreeBSD UDP graphs
 compile without execution. Its bundle restores the exact commit/tree and passes
 strict fsck. Captured-loop safety relies on R2 joining workers before loop deinit.
 
-Failed-registration rollback remains a separate bounded correction before the
-next H1 physical-close design review. No native fault or interleaving experiment
+The [reviewed registration rollback](evidence/m3_libxev_registration_rollback/README.md)
+saves local append `c223bd886c6a51d2cd60def39dd9a68d701fea73`. All eleven ADD
+paths retain acquisition ownership; failure invalidates and closes only a new
+duplicate, preserving exact errors and existing state/callback accounting.
+Independent review finds no actionable findings. Four named ownership cases
+and discovery checks pass 30/30 each mode; healthy suites pass 159/163 with
+four existing skips each. Linux x64 layout assembly is identical, and Windows
+focused compilation passes. The bundle restores the exact commit/tree with
+strict fsck. The actual failing kernel branch remains source-proved.
+
+The revised H1 physical-close proposal now undergoes fresh design review using
+these exact local backend contracts. No native fault or interleaving experiment
 is needed for these source and pure-policy checks. Full H1 physical-close,
 generic adding/deleting/worker behavior and M3 provenance acceptance remain open.
 

@@ -61,7 +61,8 @@ and invalidates the duplicate cache before closing and acknowledging. No
 native leak/cancellation/race experiment follows from it. Later bounded source
 corrections are independently reviewed and saved in the linked M3 report:
 registered duplicate cleanup, IOCP result classification and worker publication.
-Failed-registration rollback and the full H1 retirement design remain open.
+The separate failed-registration rollback candidate is now reviewed and saved
+there too. The full H1 retirement design still requires fresh review.
 
 Root provisionally accepts a header resolver returning an unreserved BodyMatch,
 followed by an atomic reserve-to-pure-BodyState.arm handoff. No callback or I/O
