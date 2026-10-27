@@ -87,6 +87,9 @@ The subsequent [HTTP/2 checkpoint](m2_h2_refusal.md) completes additional scoped
 framing, output-pressure, sibling and capacity checks and preserves exact
 source deltas from this recovery archive. It remains isolated and unreviewed;
 the initial interrupted status above describes the original archived snapshot.
+The [HTTP/3 checkpoint](m2_h3_refusal.md) similarly extends the saved H3 draft
+with compatibility corrections and completed component checks. Both still
+require independent review and combined transport integration.
 
 Resume from the archived seed manifests and exact source snapshots, reconcile
 root's subsequent integration corrections, and complete those acceptance
