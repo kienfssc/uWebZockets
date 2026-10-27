@@ -61,8 +61,17 @@ Alias-aware extraction requires nine layout values per target. HeaderSet grows
 Engine remain unchanged relative to the prepared App/R2 baseline. Header-pool
 allocation must account for that growth during final combined capacity review.
 
-No live client, final independent review or combined transport gate has run for
-this checkpoint. Account usage limits still prevent independent agent review.
+The subsequent [live HTTP/3 evidence](evidence/m2_h3_refusal_live/README.md) runs
+the unchanged source with aioquic 1.3.0 and the reviewed local libxev candidate
+as a test-only override. Valid headers declaring a 100,000,000-byte body, with
+no DATA or sending-side FIN, receive STOP_SENDING(H3_NO_ERROR) and a complete
+empty 503. A concurrent healthy sibling and a later request both return 200
+on that QUIC connection. The io_uring server drains with zero sink effects or
+retained quota. Both processes exit zero and the owned server is reaped. Root
+dependency pins stay unchanged; this is not a completed 100 MB upload.
+
+Final independent review and the combined transport gate remain open.
+Account usage limits still prevent independent agent review.
 No dependency pin changes, FIN peeks or private lsquic-field access are included.
 An unread end-of-body length mismatch is not diagnosed by header-only refusal.
 Reconcile later root changes and complete the HTTP/1 consumer and H2/H3 refusal

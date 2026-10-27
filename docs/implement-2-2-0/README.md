@@ -46,6 +46,8 @@ Its [live TLS follow-up](evidence/m2_h2_refusal_live/README.md) records header-o
 503 and same-connection health with curl/nghttp2 on an owned io_uring server.
 The [HTTP/3 checkpoint](m2_h3_refusal.md) adds source compatibility, canonical
 selection, queued-trailer, sibling and Linux32 verification to its saved draft.
+Its [live HTTP/3 follow-up](evidence/m2_h3_refusal_live/README.md) records normal
+refusal, a healthy sibling and reuse with a reviewed test-only libxev override.
 The [pure HTTP/1 admission checkpoint](m2_h1_admission.md) verifies physical
 ingress bounds and the atomic router-to-common-state reservation handoff.
 

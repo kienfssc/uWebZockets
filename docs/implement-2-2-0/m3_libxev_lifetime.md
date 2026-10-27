@@ -56,3 +56,10 @@ independent review, compilation and execution remain pending. It is not a
 maintained commit or adopted pin, and the earlier passing suites do not verify
 that delta. M2 transport retirement and M3 final provenance closure remain gated
 on their own complete evidence.
+
+The later [normal HTTP/3 refusal check](evidence/m2_h3_refusal_live/README.md)
+uses an immutable export of the reviewed three-commit candidate as a scoped
+test override. Aioquic verifies a complete 503, healthy sibling and connection
+reuse; the owned io_uring server drains and exits zero. Candidate bytes and all
+four root pin views stay unchanged. This adds no duplicate-cleanup acceptance,
+native fault/cancellation experiment, maintained publication or full gate claim.
