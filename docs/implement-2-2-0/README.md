@@ -13,7 +13,7 @@ results and release actions are recorded only when actually performed.
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | Complete locally; external profiles re-declared | [Streaming, static, TLS](m1_streaming_static_tls.md) |
-| M2 | Request streaming and incremental multipart | Common contract/response guards verified; multipart utility integrated; intake open | [Request streaming](m2_request_streaming.md) |
+| M2 | Request streaming and incremental multipart | Pure contract, multipart and decoder verified; transports open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | [Structural ownership](m5_structural_ownership.md) |
@@ -36,6 +36,8 @@ M2 slice reports: [common contract](m2_common_contract.md),
 [response guards](m2_response_guards.md), and the standalone
 [incremental multipart utility](m2_incremental_multipart.md).
 The [part-sink adapter](m2_multipart_sink.md) records the next integration slice.
+The [HTTP/1 head/body decoder](m2_body_decoder.md) records pure framing and
+buffered compatibility before transport activation.
 [Transport preparation](m2_transport_preparation.md) preserves separate reviewed
 components, lifetime proposals, and interrupted header-refusal drafts.
 

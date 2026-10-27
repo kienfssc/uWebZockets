@@ -10,6 +10,8 @@ uses Semantic Versioning.
   and unchanged buffered multipart helpers.
 - Add multipart part-sink callbacks with partial-write backpressure, committed
   begin/end pauses, and once-only active-part cancellation.
+- Separate HTTP/1 header admission from pure bounded body framing while
+  preserving the existing buffered parser contract.
 - Add bounded Content-Length file streaming for HTTP/1, including TLS, with
   caller-provided scratch and transport-owned descriptor cleanup.
 - Extend bounded file responses to HTTP/2 with per-stream ownership, exact

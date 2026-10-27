@@ -49,6 +49,31 @@ test "fuzz: protocol parsers preserve bounded state" {
     });
 }
 
+test "fuzz: HTTP body decoding preserves bounded progress" {
+    try std.testing.fuzz({}, fuzz_http_body, .{ .corpus = &.{
+        "1;x=y\r\nx\r\n0\r\nX: v\r\n\r\nPIPE",
+        "0\r\nHost: forbidden\r\n\r\n",
+        "100000000\r\nx",
+        "10000000000000000\r\n",
+        "POST / HTTP/1.1\r\nHost: a\r\nContent-Length: 4294967296\r\n\r\n",
+        "POST / HTTP/1.1\r\nHost: a\r\nContent-Length: 20000\r\nTransfer-Encoding: chunked\r\n\r\n",
+    } });
+}
+
+fn fuzz_http_body(_: void, smith: *std.testing.Smith) !void {
+    @disableInstrumentation();
+    var storage: [4096]u8 = undefined;
+    const length: usize = @intCast(smith.sliceWeightedBytes(&storage, &.{
+        .rangeAtMost(u8, 0, 255, 1),
+        .rangeAtMost(u8, 32, 126, 4),
+        .value(u8, '\r', 8),
+        .value(u8, '\n', 8),
+        .value(u8, ';', 4),
+        .value(u8, ':', 4),
+    }));
+    support.fuzz_http_body.fuzz_one(storage[0..length], smith.index(length + 1));
+}
+
 fn fuzz_protocol_parsers(_: void, smith: *std.testing.Smith) !void {
     @disableInstrumentation();
     try fuzz_http_parser(smith);

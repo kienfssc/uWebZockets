@@ -1,3 +1,4 @@
+pub const fuzz_http_body = @import("fuzz/http_body.zig");
 pub const http_parser = @import("http/parser.zig");
 pub const cookie = @import("http/cookie.zig");
 pub const negotiate = @import("http/negotiate.zig");

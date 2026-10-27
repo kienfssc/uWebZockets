@@ -22,6 +22,7 @@ comptime {
     _ = @import("framework_tests.zig");
     _ = @import("helpers_tests.zig");
     _ = @import("http_tests.zig");
+    _ = @import("http_body_decoder_tests.zig");
     _ = @import("http2_tests.zig");
     _ = @import("http2_hpack_tests.zig");
     _ = @import("http2_server_tests.zig");

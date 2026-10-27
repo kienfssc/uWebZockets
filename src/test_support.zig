@@ -1,3 +1,4 @@
+pub const fuzz_http_body = @import("fuzz/http_body.zig");
 pub const streaming_request = @import("http/streaming_request.zig");
 pub const request_body = @import("http/request_body.zig");
 pub const public_api = @import("root.zig");
@@ -22,6 +23,7 @@ pub const terminal = @import("observability/terminal.zig");
 pub const file_watch = @import("observability/file_watch.zig");
 
 pub const http_parser = @import("http/parser.zig");
+pub const http_body_decoder = @import("http/body_decoder.zig");
 pub const http_request = @import("http/request.zig");
 pub const http_response = @import("http/response.zig");
 pub const fetch = @import("http/fetch.zig");

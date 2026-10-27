@@ -289,6 +289,8 @@ request path. For the full helper inventory, see [api.md](api.md).
 The standalone [incremental multipart parser](multipart.md) accepts arriving
 chunks with bounded caller storage and explicit payload acknowledgement. It
 does not depend on the pending request-streaming transport adapters.
+The [head/body decoder checkpoint](implement-2-2-0/m2_body_decoder.md) records
+the pure framing foundation and its buffered compatibility proof.
 
 ## Integration with another parser
 

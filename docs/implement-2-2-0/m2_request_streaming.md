@@ -3,9 +3,10 @@
 Status: compatibility-preserving architecture accepted, 2026-10-26.
 M1 is complete locally; the [common contract](m2_common_contract.md) is
 implemented and verified. [Response guards](m2_response_guards.md) also pass
-the combined gates. The standalone [incremental multipart utility](m2_incremental_multipart.md)
-is integrated separately. Admission and transport implementation remain open.
-No request-streaming capability
+the combined gates. The standalone [incremental multipart utility](m2_incremental_multipart.md),
+[part-sink adapter](m2_multipart_sink.md), and [head/body decoder](m2_body_decoder.md)
+are integrated separately. Admission and transport implementation remain open.
+No transport-driven request-streaming capability
 is implemented or advertised by this report.
 
 The architect mapped body-cap admission, borrowed headers/captures, middleware
