@@ -129,5 +129,7 @@ The [reviewed plaintext implementation](m2_h1_plaintext.md) now demonstrates
 both fixed-length and chunked 100000000-byte uploads, incremental matching
 hashes, real file/pipeline ordering and ordinary drained shutdown on an owned
 io_uring server. Its initial live matrix passes 18/20 cases; the two error-path
-client failures remain explicit. Source overlays and raw evidence are saved
+client failures remain explicit. The independently reviewed corrected client
+passes 21/21 against the identical server, including complete 413 responses and
+failed-begin quota reuse. Source overlays and raw evidence are saved
 on the feature branch. Full transport, multipart and final acceptance stay open.

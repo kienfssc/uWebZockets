@@ -5,6 +5,8 @@ request bodies through the public streaming API. Both fixed-length and chunked
 clients sent exactly 100000000 logical bytes; the server returned the same
 incrementally computed SHA256 and count. This checkpoint preserves reviewed
 code and partial live verification. M2 and production integration remain open.
+The [corrected client follow-up](evidence/m2_h1_plaintext_corrected/README.md)
+now passes all 21 cases against the identical source and server binary.
 
 The [recovery archive](evidence/m2_h1_plaintext/README.md) contains the actual
 eight-file combined overlay, five existing-file preimages, component patches,
@@ -62,6 +64,19 @@ arrived. The corrected check must preserve the parsed response and require a
 complete 413; a reset alone cannot pass. Neither failure is discarded or counted
 as success in this checkpoint.
 
+The separately reviewed corrected run resolves both checks without a production
+change. The original rejected-content sequence receives a complete empty 413,
+then a reset; the new size-line-only case receives a complete 413 and clean EOF
+before sending any payload. Both record zero accepted bytes, exactly one cancel
+and a successful same-route retry. Failed begin records clean pre-header EOF,
+no Continue or accepted binding/terminal, and a successful same-route retry.
+Quota and declared-limit refusals now require exact 503 and 413 statuses.
+All 21 cases pass, including the unchanged exact large uploads and file checks.
+The runner exits 0 with all source/build/runtime/override inputs unchanged;
+the server exits 0 and drains without forced termination. Bytecode writes are
+disabled. Three unchanged healthy TLS echo tests also pass; these exercise
+legacy buffered behavior and do not prove TLS request streaming.
+
 The evidence wrapper also failed its final whole-directory hash assertion:
 Python's helper import generated one bytecode cache. Recovery retained that
 extra file's hash, verified every original source and compiler/runtime input,
@@ -71,7 +86,7 @@ inner numeric status is not reconstructed as evidence.
 
 ## Remaining acceptance
 
-Finish the corrected error-path checks and producer metadata, cross-route,
+Finish producer metadata, cross-route,
 ordinary disconnect/shutdown and end-error cases. TLS/H2/H3 live streaming,
 multipart transport integration, native Windows, maintained dependency
 publication/adoption and final project gates remain required. No native fault

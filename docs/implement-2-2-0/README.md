@@ -13,7 +13,7 @@ results and release actions are recorded only when actually performed.
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | Complete locally; external profiles re-declared | [Streaming, static, TLS](m1_streaming_static_tls.md) |
-| M2 | Request streaming and incremental multipart | Pure contract, multipart and decoder verified; transports open | [Request streaming](m2_request_streaming.md) |
+| M2 | Request streaming and incremental multipart | Plaintext live matrix passes; remaining transport acceptance open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | [Structural ownership](m5_structural_ownership.md) |
@@ -64,7 +64,8 @@ Its [typed invariant follow-up](evidence/m2_h1_invariant_failure/README.md)
 preserves failure-latch ordering before the new fixed inactive-phase diagnostic.
 The [plaintext implementation checkpoint](m2_h1_plaintext.md) preserves reviewed
 App/driver code, both exact 100000000-byte live uploads, real-file ordering and
-two unresolved initial client checks. Production integration remains open.
+two initial client failures. Its [corrected client follow-up](evidence/m2_h1_plaintext_corrected/README.md)
+passes 21/21 against the identical server. Production integration remains open.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and

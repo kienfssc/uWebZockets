@@ -23,3 +23,6 @@ archive retains the over-limit reset and failed-begin EOF as failures, plus the
 evidence-wrapper bytecode assertion and its explicit recovery. It excludes
 the subsequent uncompiled fixture extensions and client corrections.
 It is a recovery checkpoint, not production adoption or M2 completion.
+
+The [reviewed corrected-client follow-up](../m2_h1_plaintext_corrected/README.md)
+passes 21/21 against the identical server. This original archive remains intact.
