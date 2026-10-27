@@ -20,6 +20,8 @@ target from exported LLVM aliases. Earlier test/fixture errors, source
 compatibility failures and mislabeled runner records remain identified; only
 the explicit legacy-corrected commands establish the unchanged-suite result.
 
-The [report](../../m2_h3_refusal.md) records the separate review, live-client and
-combined-integration requirements. This checkpoint establishes no live uploads
-or complete M2 result.
+The subsequent [independent review](independent-review.json) binds this exact
+snapshot and finds no actionable issues within the component. The
+[report](../../m2_h3_refusal.md) also links the later normal live refusal,
+sibling and connection-reuse evidence. Combined integration, full protocol
+gates and actual uploads remain open; this is not complete M2 acceptance.

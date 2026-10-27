@@ -1,7 +1,7 @@
 # M2: HTTP/3 header refusal preparation
 
-Status: isolated implementation verified, 2026-10-27; independent review and
-production integration remain open. This prepares temporary empty 503 responses
+Status: isolated implementation verified and independently reviewed, 2026-10-27;
+production integration remains open. This prepares temporary empty 503 responses
 for selected BodyRoutes before an actual HTTP/3 upload driver exists.
 
 The engine lends its immutable router to initial header sets. Selection follows
@@ -70,8 +70,13 @@ on that QUIC connection. The io_uring server drains with zero sink effects or
 retained quota. Both processes exit zero and the owned server is reaped. Root
 dependency pins stay unchanged; this is not a completed 100 MB upload.
 
-Final independent review and the combined transport gate remain open.
-Account usage limits still prevent independent agent review.
+The [fresh independent review](evidence/m2_h3_refusal/independent-review.json)
+finds no actionable issues within this frozen component. It checks canonical
+selection, framing precedence, source compatibility, read shutdown, pending
+response/trailer ownership, sibling isolation and untouched admission counters.
+Recorded results match the source hashes and documented HeaderSet growth.
+The reviewer ran no builds, tests or probes. Root accepts this bounded component;
+the combined transport and full protocol gates remain open.
 No dependency pin changes, FIN peeks or private lsquic-field access are included.
 An unread end-of-body length mismatch is not diagnosed by header-only refusal.
 Reconcile later root changes and complete the HTTP/1 consumer and H2/H3 refusal
