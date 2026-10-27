@@ -61,8 +61,16 @@ Session and TcpConnection each grow eight bytes on all measured targets;
 Callbacks grows one pointer. These are isolated, cumulative-baseline-dependent
 measurements, not final production capacity guarantees.
 
-No final independent review, live HTTP/2 client or combined transport gate has
-run for this checkpoint. Account usage limits still prevent the required
+The subsequent [live TLS evidence](evidence/m2_h2_refusal_live/README.md) exercises
+the unchanged isolated source with curl 8.5.0/nghttp2. A valid 100,000,000-byte
+upload source with Expect: 100-continue receives an empty HTTP/2 503 with zero
+bytes uploaded and no 100 Continue. A healthy 200 request reuses the same TLS
+connection. The io_uring server drains with zero sink calls or retained quota;
+only the healthy request invokes middleware. Both processes exit zero and the
+owned server is reaped. This is refusal evidence, not a completed 100 MB upload.
+
+No final independent review or combined transport gate has run for this
+checkpoint. Account usage limits still prevent the required
 independent agent review. The prepared public registry/App/R2 surface must land
 with a working HTTP/1 consumer and corresponding H2/H3 refusal. Reconcile later
 root changes before integration. Actual H2 streaming, bounded shared body

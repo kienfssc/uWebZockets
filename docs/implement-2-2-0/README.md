@@ -42,6 +42,8 @@ buffered compatibility before transport activation.
 components, lifetime proposals, and interrupted header-refusal drafts.
 The [HTTP/2 refusal checkpoint](m2_h2_refusal.md) extends its isolated draft with
 framing, output pressure, sibling, capacity and Linux32 verification.
+Its [live TLS follow-up](evidence/m2_h2_refusal_live/README.md) records header-only
+503 and same-connection health with curl/nghttp2 on an owned io_uring server.
 The [HTTP/3 checkpoint](m2_h3_refusal.md) adds source compatibility, canonical
 selection, queued-trailer, sibling and Linux32 verification to its saved draft.
 The [pure HTTP/1 admission checkpoint](m2_h1_admission.md) verifies physical
