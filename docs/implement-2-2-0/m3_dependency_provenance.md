@@ -168,3 +168,11 @@ inclusion before release. Together with mirror/publication/protection and
 second-machine requirements, this keeps M3/C13 open. Refresh these archives
 after any final reviewed pin change; recovery instructions and responsible
 restoration steps accompany the artifact.
+
+## Local libxev lifetime fixes
+
+The [UDP and bounded cancellation candidate](m3_libxev_lifetime.md) records an
+ordinary startup/shutdown failure, reviewed local append commits, healthy-suite
+results and a complete recovery/review package. It also preserves the corrected
+kqueue test contract. No maintained ref or root pin changed; publication,
+protection confirmation, duplicate cleanup and transport retirement remain open.
