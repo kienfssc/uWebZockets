@@ -80,6 +80,9 @@ The [HTTP/2 receive queue core](m2_h2_body_queue.md) passes its nine focused
 tests in both modes; actual Session/registered-sink integration is the next slice.
 The [three-target layout checkpoint](m2_h2_layout.md) measures its bounded warm
 growth and records the corrected observation/Continue gate before delivery code.
+The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
+pinned tools and reviewed bounded helpers; its checks are pure and provide no
+uWebZockets, socket or live-upload evidence.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and
