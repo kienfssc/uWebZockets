@@ -71,7 +71,8 @@ not separate native results. Reset absence covers bytes observed, not an unseen
 future frame after reading stops. Fixed-capacity accounting is not an RSS/leak
 or general native lifetime proof.
 
-Remaining Task 5b requires empty/limit/Continue/quota behavior, padded trailers,
+The [admission successor](m2_h2_admission_live.md) passes all 13 empty/limit/
+Continue/quota and recovery cases. Remaining Task 5b requires padded trailers,
 receive credit, concurrent routes, overflow metadata and helper coverage. Task 5c
 still requires producer/file/pressure/reuse, active public cancellation, peer
 reset, application errors, ordinary disconnect, active shutdown and the combined

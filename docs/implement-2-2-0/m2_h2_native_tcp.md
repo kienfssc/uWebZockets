@@ -77,8 +77,10 @@ sources. No throughput or native runtime safety claim follows from these checks.
 
 The subsequent core run proves the exact100000000-byte count/SHA in both
 framings and normal idle shutdown; the [pause/control successor](m2_h2_pause_control_live.md)
-also passes partial/final/empty pauses and public validation. Owned clients must
-still prove limits, Continue, quota, flow control, siblings, metadata, producer/file completion, cancellation,
+also passes partial/final/empty pauses and public validation. The
+[admission successor](m2_h2_admission_live.md) verifies limits, Continue, quota
+and recovery. Clients must still prove flow control, siblings, metadata,
+producer/file completion, cancellation,
 disconnect and active drained shutdown. Full native/sanitizer/h1spec gates, physical
 cancellation/reuse safety, genuine early data, production adoption and complete
 M2 acceptance remain open. Stopped experiments and denied socket cases remain
