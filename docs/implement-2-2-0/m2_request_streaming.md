@@ -185,3 +185,9 @@ Both reviewers pass the final nesting refactor; 190 selected results pass per
 Debug/ReleaseSafe mode on the final tree. Three-target compilation, eligible
 32-bit checks, measured storage and raw evidence are preserved. Native TCP
 activation, release pins, live upload proof and full milestone gates remain open.
+
+The [native admission fact](m2_h2_native_admission.md) adds the measured stack-only
+policy input and its shared-admission projection. An actual encoded regression
+changes100 to425 before middleware/quota/begin/Continue and admits the ordinary
+sibling;47 selected results pass per mode. Native TLS derivation and TCP lifetime
+composition remain the next required integration work.

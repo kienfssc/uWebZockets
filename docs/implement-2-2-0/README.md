@@ -88,6 +88,9 @@ disabled totals. Native body callbacks and TCP lifetime composition remain gated
 The [terminal-input successor](m2_h2_terminal_inputs.md) preserves no-output
 teardown, ordinary GOAWAY credit/output and drained generation-safe reset;
 190 selected tests pass per mode after the reviewed nesting correction.
+The [native admission fact](m2_h2_native_admission.md) propagates early-data policy
+through the existing Router boundary; its encoded425 regression and47 selected
+tests per mode pass. Native policy derivation remains part of TCP integration.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
