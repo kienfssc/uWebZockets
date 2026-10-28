@@ -4,7 +4,7 @@ Status: implementation in progress. The [common contract](m2_common_contract.md)
 [response guards](m2_response_guards.md), [incremental multipart utility](m2_incremental_multipart.md),
 [part-sink adapter](m2_multipart_sink.md) and [head/body decoder](m2_body_decoder.md)
 have verified component checkpoints. Reviewed plaintext and ordinary TLS live
-matrices pass. The concrete H2 Session/sink successor is reviewed; native H2,
+matrices pass. Native H2 composition is reviewed; actual H2 upload acceptance,
 HTTP/3, multipart transport composition, production adoption and final acceptance
 remain open. The sections below preserve design decisions and component history.
 
@@ -191,3 +191,12 @@ policy input and its shared-admission projection. An actual encoded regression
 changes100 to425 before middleware/quota/begin/Continue and admits the ordinary
 sibling;47 selected results pass per mode. Native TLS derivation and TCP lifetime
 composition remain the next required integration work.
+
+The [native TCP composition candidate](m2_h2_native_tcp.md) now wires body
+selection/events/controls, actual policy derivation, complete Response hooks,
+indexed metadata and whole-operation borrows. Existing completing state pins
+enabled H2 release through the final async wake. Initial193 selected results per
+mode pass; final79 covering results pass after the independently reviewed
+three-callsite source-failure correction. Portability, layout and reconstruction
+evidence retains exact source identities. Actual owned100000000-byte H2/TLS proof,
+physical lifecycle/full gates and production adoption remain required next.
