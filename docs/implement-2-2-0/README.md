@@ -78,6 +78,8 @@ passes 37/37 through the cluster and 37/37 through the configured single App,
 including both exact 100000000-byte framings. Production adoption remains open.
 The [HTTP/2 receive queue core](m2_h2_body_queue.md) passes its nine focused
 tests in both modes; actual Session/registered-sink integration is the next slice.
+The [three-target layout checkpoint](m2_h2_layout.md) measures its bounded warm
+growth and records the corrected observation/Continue gate before delivery code.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and
