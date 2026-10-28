@@ -176,3 +176,12 @@ receive pool, concrete drivers and capture matrices and binds owners at stable
 addresses. Its140 selected tests per mode pass; three-target measurements preserve
 disabled totals. Native body callbacks stay
 gated pending complete TCP lifetime/closure/reuse composition and live proof.
+
+The [terminal-input successor](m2_h2_terminal_inputs.md) now retires all identities
+before bulk notification, preserves callback metadata through unwind, abandons
+teardown output and implements slot-only drain/reset with stable generations.
+Ordinary GOAWAY retains response output and exact seven-byte connection credit.
+Both reviewers pass the final nesting refactor; 190 selected results pass per
+Debug/ReleaseSafe mode on the final tree. Three-target compilation, eligible
+32-bit checks, measured storage and raw evidence are preserved. Native TCP
+activation, release pins, live upload proof and full milestone gates remain open.

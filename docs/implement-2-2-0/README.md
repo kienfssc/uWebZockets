@@ -13,7 +13,7 @@ results and release actions are recorded only when actually performed.
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | TLS closure successor verified; adoption and external profiles open | [Streaming, static, TLS](m1_streaming_static_tls.md) |
-| M2 | Request streaming and incremental multipart | H1/TLS live matrices pass; H2 Session/sink checkpoint reviewed; native transport acceptance open | [Request streaming](m2_request_streaming.md) |
+| M2 | Request streaming and incremental multipart | H1/TLS live matrices pass; H2 closure/reset reviewed; native transport acceptance open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | [Structural ownership](m5_structural_ownership.md) |
@@ -85,6 +85,9 @@ growth and records the corrected observation/Continue gate before delivery code.
 The [native startup checkpoint](m2_h2_native_startup.md) adds enabled-only carving
 and stable late owner binding, with140 selected tests per mode and unchanged
 disabled totals. Native body callbacks and TCP lifetime composition remain gated.
+The [terminal-input successor](m2_h2_terminal_inputs.md) preserves no-output
+teardown, ordinary GOAWAY credit/output and drained generation-safe reset;
+190 selected tests pass per mode after the reviewed nesting correction.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
