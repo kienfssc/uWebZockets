@@ -170,3 +170,9 @@ target semantic compilation and unchanged measured stored layouts.
 Source snapshots and a verified cumulative Git patch are on the feature branch.
 Native startup/cold-owner binding, whole-operation borrow/closure/reuse composition,
 actual100000000-byte H2/TLS proof and the original full M2 gates remain open.
+
+The [startup storage successor](m2_h2_native_startup.md) now carves the enabled
+receive pool, concrete drivers and capture matrices and binds owners at stable
+addresses. Its140 selected tests per mode pass; three-target measurements preserve
+disabled totals. Native body callbacks stay
+gated pending complete TCP lifetime/closure/reuse composition and live proof.

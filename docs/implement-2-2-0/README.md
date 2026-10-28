@@ -82,6 +82,9 @@ passes173 selected tests per mode after four independently reviewed fixes;
 native App/TCP activation and actual H2/TLS upload proof remain open.
 The [three-target layout checkpoint](m2_h2_layout.md) measures its bounded warm
 growth and records the corrected observation/Continue gate before delivery code.
+The [native startup checkpoint](m2_h2_native_startup.md) adds enabled-only carving
+and stable late owner binding, with140 selected tests per mode and unchanged
+disabled totals. Native body callbacks and TCP lifetime composition remain gated.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
