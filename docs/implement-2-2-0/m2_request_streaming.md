@@ -4,9 +4,10 @@ Status: implementation in progress. The [common contract](m2_common_contract.md)
 [response guards](m2_response_guards.md), [incremental multipart utility](m2_incremental_multipart.md),
 [part-sink adapter](m2_multipart_sink.md) and [head/body decoder](m2_body_decoder.md)
 have verified component checkpoints. Reviewed plaintext and ordinary TLS live
-matrices pass. Native H2 composition is reviewed; actual H2 upload acceptance,
-HTTP/3, multipart transport composition, production adoption and final acceptance
-remain open. The sections below preserve design decisions and component history.
+matrices pass. The [H2 core live matrix](m2_h2_core_live.md) passes five cases,
+including declared and undeclared 100000000-byte uploads. Broader H2, HTTP/3,
+multipart transport composition, production adoption and final acceptance remain
+open. The sections below preserve design decisions and component history.
 
 The architect mapped body-cap admission, borrowed headers/captures, middleware
 metadata, callback ownership, informational responses, and flow control across

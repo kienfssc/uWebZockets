@@ -3,7 +3,8 @@
 The reviewed candidate connects native H2 selection, body events and controls to
 registered sinks, using the existing startup slab and stable Router binding.
 It derives the [admission fact](m2_h2_native_admission.md) from the connection's
-existing TLS/method policy. Actual H2/TLS upload acceptance remains open.
+existing TLS/method policy. The subsequent [core live matrix](m2_h2_core_live.md)
+passes both actual 100000000-byte H2/TLS uploads; broader acceptance remains open.
 
 The [archive and readable patch](evidence/m2_h2_native_tcp/README.md) preserve
 seven changed paths, complete inventories, measurements, intermediate failures,
@@ -74,9 +75,10 @@ binaries, external inputs, all93 override files, source inventories and complete
 cumulative patch reconstruction. Recorded runs stay attributed to their actual
 sources. No throughput or native runtime safety claim follows from these checks.
 
-Owned H2/TLS clients must still prove the exact100000000-byte count/SHA, pauses,
+The subsequent core run proves the exact100000000-byte count/SHA in both
+framings and normal idle shutdown. Owned clients must still prove pauses,
 flow control, siblings, metadata, producer/file completion, cancellation,
-disconnect and drained shutdown. Full native/sanitizer/h1spec gates, physical
+disconnect and active drained shutdown. Full native/sanitizer/h1spec gates, physical
 cancellation/reuse safety, genuine early data, production adoption and complete
 M2 acceptance remain open. Stopped experiments and denied socket cases remain
 stopped; authenticated SSL_in_init early EOF retains its existing abort boundary.
