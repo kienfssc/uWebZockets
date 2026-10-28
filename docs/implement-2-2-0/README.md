@@ -13,7 +13,7 @@ results and release actions are recorded only when actually performed.
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | TLS closure successor verified; adoption and external profiles open | [Streaming, static, TLS](m1_streaming_static_tls.md) |
-| M2 | Request streaming and incremental multipart | Plaintext and ordinary TLS live matrices pass; remaining transport acceptance open | [Request streaming](m2_request_streaming.md) |
+| M2 | Request streaming and incremental multipart | H1/TLS live matrices pass; H2 Session/sink checkpoint reviewed; native transport acceptance open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | [Structural ownership](m5_structural_ownership.md) |
@@ -77,7 +77,9 @@ preserve single-App streaming configuration. The [strict live TLS matrix](m2_tls
 passes 37/37 through the cluster and 37/37 through the configured single App,
 including both exact 100000000-byte framings. Production adoption remains open.
 The [HTTP/2 receive queue core](m2_h2_body_queue.md) passes its nine focused
-tests in both modes; actual Session/registered-sink integration is the next slice.
+tests in both modes. Its [Session/registered-sink successor](m2_h2_session_delivery.md)
+passes173 selected tests per mode after four independently reviewed fixes;
+native App/TCP activation and actual H2/TLS upload proof remain open.
 The [three-target layout checkpoint](m2_h2_layout.md) measures its bounded warm
 growth and records the corrected observation/Continue gate before delivery code.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves

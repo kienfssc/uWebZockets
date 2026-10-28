@@ -1,13 +1,12 @@
 # M2: request streaming and incremental multipart
 
-Status: compatibility-preserving architecture accepted, 2026-10-26.
-M1 is complete locally; the [common contract](m2_common_contract.md) is
-implemented and verified. [Response guards](m2_response_guards.md) also pass
-the combined gates. The standalone [incremental multipart utility](m2_incremental_multipart.md),
-[part-sink adapter](m2_multipart_sink.md), and [head/body decoder](m2_body_decoder.md)
-are integrated separately. Admission and transport implementation remain open.
-No transport-driven request-streaming capability
-is implemented or advertised by this report.
+Status: implementation in progress. The [common contract](m2_common_contract.md),
+[response guards](m2_response_guards.md), [incremental multipart utility](m2_incremental_multipart.md),
+[part-sink adapter](m2_multipart_sink.md) and [head/body decoder](m2_body_decoder.md)
+have verified component checkpoints. Reviewed plaintext and ordinary TLS live
+matrices pass. The concrete H2 Session/sink successor is reviewed; native H2,
+HTTP/3, multipart transport composition, production adoption and final acceptance
+remain open. The sections below preserve design decisions and component history.
 
 The architect mapped body-cap admission, borrowed headers/captures, middleware
 metadata, callback ownership, informational responses, and flow control across
@@ -158,3 +157,16 @@ It preserves the accepted 73728-byte eight-stream pool bound and independently
 pending credit scopes. Actual Session output acceptance/retry, registered body
 sinks, per-stream metadata, lifecycle composition and a real 100000000-byte
 HTTP/2 upload are required next; the core alone is not streaming capability.
+
+## HTTP/2 Session and registered-sink checkpoint
+
+The [reviewed concrete driver](m2_h2_session_delivery.md) now connects encoded
+HEADERS/DATA to actual registered sinks and shared router admission. It preserves
+observe-once/FIFO/Continue behavior, per-stream metadata and accepted-scope credit.
+Four review findings have genuine failing-first regressions and clean scoped
+re-reviews. Final173 selected tests pass per Debug/ReleaseSafe mode, with three-
+target semantic compilation and unchanged measured stored layouts.
+
+Source snapshots and a verified cumulative Git patch are on the feature branch.
+Native startup/cold-owner binding, whole-operation borrow/closure/reuse composition,
+actual100000000-byte H2/TLS proof and the original full M2 gates remain open.
