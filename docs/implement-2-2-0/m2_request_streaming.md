@@ -139,10 +139,22 @@ on the feature branch. Full transport, multipart and final acceptance stay open.
 The [TLS capacity clarification](m2_tls_capacity.md) explicitly qualifies the
 ADR's raw-socket bound for encrypted receives. Existing BIO capacity bounds
 ciphertext while the HTTP window continues to bound SSL_read. Independent
-source review accepts the reservation requirements; concrete implementation
-and TLS upload verification remain open.
+source review accepts the reservation requirements; its implementation and
+ordinary live verification are recorded in the follow-ups below.
 
 The [TLS driver checkpoint](m2_tls_driver.md) now preserves implemented,
 independently reviewed extraction/receive/resume code with 27 focused tests and
-three-target compilation. Its new TLS client matrix has not run. An inherited
-graceful shutdown retry gap is tracked separately before strict live EOF checks.
+three-target compilation. The [shutdown successor](m1_tls_shutdown.md) corrects
+the inherited retry gap. The [strict ordinary TLS matrix](m2_tls_live.md) passes
+37/37 through both cluster and configured single-App paths, including both exact
+100000000-byte framings, retained input and owned active-upload shutdown.
+Production adoption, genuine early data and final transport gates remain open.
+
+## HTTP/2 queue foundation
+
+The [reviewed receive queue and credit core](m2_h2_body_queue.md) passes nine
+pure tests in each build mode and three-target/32-bit semantic compilation.
+It preserves the accepted 73728-byte eight-stream pool bound and independently
+pending credit scopes. Actual Session output acceptance/retry, registered body
+sinks, per-stream metadata, lifecycle composition and a real 100000000-byte
+HTTP/2 upload are required next; the core alone is not streaming capability.

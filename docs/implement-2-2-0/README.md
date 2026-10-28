@@ -76,6 +76,8 @@ close-notify retry finding. The [configured HTTPS constructors](m2_configured_ht
 preserve single-App streaming configuration. The [strict live TLS matrix](m2_tls_live.md)
 passes 37/37 through the cluster and 37/37 through the configured single App,
 including both exact 100000000-byte framings. Production adoption remains open.
+The [HTTP/2 receive queue core](m2_h2_body_queue.md) passes its nine focused
+tests in both modes; actual Session/registered-sink integration is the next slice.
 
 The [reviewed libxev duplicate-cleanup candidate](evidence/m3_libxev_dup_verified/README.md)
 adds independent source review, pure decisions, healthy-suite verification and
