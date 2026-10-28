@@ -76,8 +76,9 @@ selects all 13 cases. Raw reset assertions cover bytes read through the stated
 barriers, not arbitrary future unread frames. Fixed-capacity accounting is not
 an RSS/leak, exceptional-cleanup or general physical lifetime proof.
 
-Padded trailers, credit exhaustion, concurrent routes and overflow metadata/helper
-checks remain required. Producer/file/pressure/reuse, active cancellation, peer
+The [credit successor](m2_h2_credit_live.md) now passes padded trailers, credit
+exhaustion and concurrent routes. Overflow metadata/helper checks remain
+required. Producer/file/pressure/reuse, active cancellation, peer
 reset, application errors, disconnect, active shutdown and the combined matrix
 remain Task 5c work. H3, multipart transport, genuine early data, full native/
 sanitizer/platform/compliance gates, maintained adoption and the original

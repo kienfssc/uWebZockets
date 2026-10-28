@@ -9,7 +9,8 @@ including declared and undeclared 100000000-byte uploads. The
 [pause/control successor](m2_h2_pause_control_live.md) proves partial/final/empty
 pauses and public token validation through deinit. The
 [admission successor](m2_h2_admission_live.md) passes 13 empty/limit/Continue/quota
-and recovery cases. Broader H2, HTTP/3,
+and recovery cases. The [credit successor](m2_h2_credit_live.md) proves padded
+trailers, zero-credit control progress and concurrent route isolation. Broader H2, HTTP/3,
 multipart transport composition, production adoption and final acceptance remain
 open. The sections below preserve design decisions and component history.
 
