@@ -5,7 +5,9 @@ Status: implementation in progress. The [common contract](m2_common_contract.md)
 [part-sink adapter](m2_multipart_sink.md) and [head/body decoder](m2_body_decoder.md)
 have verified component checkpoints. Reviewed plaintext and ordinary TLS live
 matrices pass. The [H2 core live matrix](m2_h2_core_live.md) passes five cases,
-including declared and undeclared 100000000-byte uploads. Broader H2, HTTP/3,
+including declared and undeclared 100000000-byte uploads. The
+[pause/control successor](m2_h2_pause_control_live.md) proves partial/final/empty
+pauses and public token validation through deinit. Broader H2, HTTP/3,
 multipart transport composition, production adoption and final acceptance remain
 open. The sections below preserve design decisions and component history.
 

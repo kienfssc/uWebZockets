@@ -74,8 +74,10 @@ execution. The public archive excludes private-key material and build binaries.
 
 ## Remaining acceptance
 
-Task 5b still requires pauses, empty/limit/Continue/quota behavior, queued
-trailers and padding, concurrent routes, receive credit, metadata and controls.
+The [pause/control successor](m2_h2_pause_control_live.md) now proves partial,
+final and begin-paused empty cases plus public token validation. Task 5b still
+requires empty/limit/Continue/quota behavior, queued trailers and padding,
+concurrent routes, receive credit, overflow metadata and helper coverage.
 Task 5c still requires producer/file output, pressure, reuse, public cancellation,
 peer reset, application errors, ordinary disconnect, active shutdown and the
 combined matrix with terminal totals through deinit. Idle shutdown proves none
