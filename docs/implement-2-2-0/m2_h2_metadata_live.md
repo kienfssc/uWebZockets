@@ -53,8 +53,10 @@ It also retains complete replacement bytes and base/new hashes for the 40
 candidate source paths that differ from Root commit `30f27ab`, for review and
 recovery. Those archived files do not activate the candidate in the library.
 
-This brings the independent H2 case inventory to 26 proved IDs and 14 remaining.
-Producer/file/output pressure, active cancellation/reset, application errors,
+This checkpoint brings the H2 case inventory to 26 proved IDs and 14 remaining.
+The later [control successor](m2_h2_control_live.md) proves ready/paused
+cancellation and peer reset, extending it to 29 proved IDs and 11 remaining.
+Producer/file/output pressure, application errors,
 disconnect, reuse, active shutdown and the combined matrix remain required.
 H3, multipart transport, genuine early data, full quality/platform/compliance/
 physical gates, maintained publication and production adoption remain open.

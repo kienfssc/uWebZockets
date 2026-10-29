@@ -12,7 +12,8 @@ pauses and public token validation through deinit. The
 and recovery cases. The [credit successor](m2_h2_credit_live.md) proves padded
 trailers, zero-credit control progress and concurrent route isolation. The
 [metadata successor](m2_h2_metadata_live.md) passes overflow metadata and helper
-refusals. Broader H2, HTTP/3,
+refusals. The [control successor](m2_h2_control_live.md) passes ready/paused
+cancellation, peer reset and independent recovery. Broader H2, HTTP/3,
 multipart transport composition, production adoption and final acceptance remain
 open. The sections below preserve design decisions and component history.
 
