@@ -13,7 +13,7 @@ results and release actions are recorded only when actually performed.
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | TLS closure successor verified; adoption and external profiles open | [Streaming, static, TLS](m1_streaming_static_tls.md) |
-| M2 | Request streaming and incremental multipart | H1/TLS and H2 uploads, metadata, cancel/reset and application-error proofs pass; broader H2/H3 and adoption remain open | [Request streaming](m2_request_streaming.md) |
+| M2 | Request streaming and incremental multipart | H1/TLS and 35 H2 case IDs proved; five H2 IDs, combined matrix, H3 and adoption remain open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | [Structural ownership](m5_structural_ownership.md) |
@@ -110,8 +110,10 @@ helper refusals and trailer retention through deinit. The
 [control successor](m2_h2_control_live.md) passes ready/paused cancellation and
 peer reset with independent credit and recovery checks. The
 [application-error successor](m2_h2_application_error_live.md) passes chunk,
-progress and end failures without duplicate cancellation. Further output/lifecycle
-extensions and the combined matrix remain required.
+progress and end failures without duplicate cancellation. The
+[lifecycle-close successor](m2_h2_lifecycle_close_live.md) passes clean disconnect,
+nine-request reuse and active-upload shutdown. Five output case IDs and the
+combined matrix remain required.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
