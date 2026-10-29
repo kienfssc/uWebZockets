@@ -48,6 +48,8 @@ The [HTTP/3 checkpoint](m2_h3_refusal.md) adds source compatibility, canonical
 selection, queued-trailer, sibling and Linux32 verification to its saved draft.
 Its [live HTTP/3 follow-up](evidence/m2_h3_refusal_live/README.md) records normal
 refusal, a healthy sibling and reuse with a reviewed test-only libxev override.
+The [HTTP/3 source checkpoint](m2_h3_source_authentication.md) authenticates the
+cached QPACK file against the retained exact-pin Git bundle; upload work remains open.
 The [pure HTTP/1 admission checkpoint](m2_h1_admission.md) verifies physical
 ingress bounds and the atomic router-to-common-state reservation handoff.
 The [typed loop-callback adapter](m2_loop_callback_adapter.md) prepares backend

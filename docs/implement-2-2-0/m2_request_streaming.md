@@ -15,7 +15,9 @@ trailers, zero-credit control progress and concurrent route isolation. The
 refusals. The [control successor](m2_h2_control_live.md) passes ready/paused
 cancellation, peer reset and independent recovery. The
 [application-error successor](m2_h2_application_error_live.md) passes chunk,
-progress and end failures. Broader H2, HTTP/3,
+progress and end failures. The [HTTP/3 source checkpoint](m2_h3_source_authentication.md)
+authenticates the cached QPACK file against the retained exact-pin bundle.
+Broader H2, HTTP/3,
 multipart transport composition, production adoption and final acceptance remain
 open. The sections below preserve design decisions and component history.
 
