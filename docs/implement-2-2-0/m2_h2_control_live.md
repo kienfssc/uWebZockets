@@ -52,8 +52,10 @@ before/after audits verify 2,433 inputs, seven trees and six static archives.
 The candidate remains the same 1031-file source with the reviewed c223 override;
 ordinary root pins and production adoption remain separate.
 
-This extends the [metadata checkpoint](m2_h2_metadata_live.md) to **29 proved H2
-case IDs, with 11 remaining**. Application errors, disconnect, repeated reuse,
+This checkpoint extends the [metadata checkpoint](m2_h2_metadata_live.md) to
+**29 proved H2 case IDs, with 11 remaining**. The later
+[application-error successor](m2_h2_application_error_live.md) extends this to
+32 proved IDs and eight remaining. Disconnect, repeated reuse,
 active shutdown, producer/file/output cases and the combined matrix remain
 required, alongside H3/multipart/genuine early data and the wider platform,
 compliance, physical-lifetime, maintained-publication and release gates. No
