@@ -60,8 +60,9 @@ removed. The successful log is 12,346 bytes, below the 65,536-byte cap; Root ver
 the owned host PID is absent. Input hashes match before and after execution.
 
 The [core upload](m2_h2_core_live.md), [pause/control](m2_h2_pause_control_live.md)
-and [admission](m2_h2_admission_live.md) proofs remain separate. Overflow metadata
-and helper checks, producer/file/output pressure, active cancellation/reset,
+and [admission](m2_h2_admission_live.md) proofs remain separate. The
+[metadata successor](m2_h2_metadata_live.md) now passes overflow metadata and
+helper checks. Producer/file/output pressure, active cancellation/reset,
 application errors, disconnect, reuse, active shutdown and the combined matrix
 remain required. H3, multipart transport, genuine early data, full quality,
 physical lifetime, compliance/platform gates, maintained publication and

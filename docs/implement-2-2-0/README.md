@@ -13,7 +13,7 @@ results and release actions are recorded only when actually performed.
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | TLS closure successor verified; adoption and external profiles open | [Streaming, static, TLS](m1_streaming_static_tls.md) |
-| M2 | Request streaming and incremental multipart | H1/TLS and H2 upload/pause/admission/credit proofs pass; broader H2/H3 and adoption remain open | [Request streaming](m2_request_streaming.md) |
+| M2 | Request streaming and incremental multipart | H1/TLS and H2 upload/pause/admission/credit/metadata proofs pass; broader H2/H3 and adoption remain open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | [Structural ownership](m5_structural_ownership.md) |
@@ -103,7 +103,9 @@ for empty/limited bodies, Continue, quota and failed-begin recovery, with retain
 headers and ordered refusal resets. The [credit successor](m2_h2_credit_live.md)
 passes padded trailers, legitimate credit exhaustion and concurrent route
 isolation. It preserves a failed restricted startup and the completed host run.
-Metadata and output/lifecycle extensions remain required.
+The [metadata successor](m2_h2_metadata_live.md) passes overflow headers/captures,
+helper refusals and trailer retention through deinit. Output/lifecycle
+extensions and the combined matrix remain required.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
