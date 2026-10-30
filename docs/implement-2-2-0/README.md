@@ -120,6 +120,9 @@ cases and independent credit accounting remain open.
 Its [client-core successor](m2_h2_output_client_core.md) adds separate credit
 ledgers, ordered late refunds and bounded output stages with pure codec proof;
 fixture, runner, native output cases and the combined matrix remain open.
+The [output fixture preparation](m2_h2_output_fixture.md) adds reviewed fixture
+sources, actual Debug/ReleaseSafe compilation and current function-based checks.
+The fixture remains unexecuted; native output coverage is still 35 of 40 IDs.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.

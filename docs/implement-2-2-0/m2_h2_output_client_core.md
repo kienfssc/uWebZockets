@@ -27,3 +27,8 @@ the combined 40-case matrix remain required. The 65-byte request-flow cap and
 stage budgets apply to the five output cases; the combined matrix still needs
 its own derived limits. M2 remains open with 35 native H2 case IDs proved.
 Full quality/platform gates and production adoption remain open.
+
+The [fixture-preparation successor](m2_h2_output_fixture.md) preserves current
+function-based checks and controlled fixture compilation. Its 37 client checks
+retain the six runtime algorithms from this checkpoint; historical archives
+remain unchanged. No native output case is added by that preparation.
