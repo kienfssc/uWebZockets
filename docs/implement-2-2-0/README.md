@@ -114,6 +114,9 @@ progress and end failures without duplicate cancellation. The
 [lifecycle-close successor](m2_h2_lifecycle_close_live.md) passes clean disconnect,
 nine-request reuse and active-upload shutdown. Five output case IDs and the
 combined matrix remain required.
+The [bounded output observer](m2_h2_output_observer.md) prepares hash-only binary
+responses and manual credit, with pure codec regression evidence; native output
+cases and independent credit accounting remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
