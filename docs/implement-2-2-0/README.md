@@ -117,6 +117,9 @@ combined matrix remain required.
 The [bounded output observer](m2_h2_output_observer.md) prepares hash-only binary
 responses and manual credit, with pure codec regression evidence; native output
 cases and independent credit accounting remain open.
+Its [client-core successor](m2_h2_output_client_core.md) adds separate credit
+ledgers, ordered late refunds and bounded output stages with pure codec proof;
+fixture, runner, native output cases and the combined matrix remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
