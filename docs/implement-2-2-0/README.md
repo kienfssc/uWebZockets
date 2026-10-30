@@ -123,6 +123,9 @@ fixture, runner, native output cases and the combined matrix remain open.
 The [output fixture preparation](m2_h2_output_fixture.md) adds reviewed fixture
 sources, actual Debug/ReleaseSafe compilation and current function-based checks.
 The fixture remains unexecuted; native output coverage is still 35 of 40 IDs.
+The [output driver preparation](m2_h2_output_driver.md) adds reviewed schedules,
+public-codec integration checks, owned-process cleanup and an authenticated
+runtime input closure. Native output execution and the combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.

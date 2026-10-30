@@ -32,3 +32,7 @@ Driver integration, current runtime input closure, returned-error ownership
 evidence, the five native output cases and an actual combined 40-case matrix
 remain required. M2 still has 35 native H2 case IDs proved. Full quality/platform
 gates and production adoption remain open.
+
+The [driver-preparation successor](m2_h2_output_driver.md) integrates these
+compiled sources with the bounded protocol client and records pure checks,
+input closure and independent review. It adds no native output result.
