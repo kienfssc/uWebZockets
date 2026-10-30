@@ -128,8 +128,11 @@ all five output cases, giving 40 proved IDs across checkpoints. The actual
 combined 40-case run and full quality/platform/adoption gates remain required.
 The [combined acceptance contract](m2_h2_combined_contract.md) now prepares all
 40 IDs and 67 independent body records, with reviewed subset/default, shutdown,
-family-evidence and work-bound contracts. Fixture/client integration, formatter
-and startup proof, builds and the actual combined run remain open.
+family-evidence and work-bound contracts. The
+[combined fixture preparation](m2_h2_combined_fixture.md) now adds the shared
+records/slots, canonical formatters, verified capture bounds and actual
+Debug/ReleaseSafe compilation. Combined client integration, startup proof,
+runtime closure and the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.

@@ -17,9 +17,18 @@ cancellation, peer reset and independent recovery. The
 [application-error successor](m2_h2_application_error_live.md) passes chunk,
 progress and end failures. The [lifecycle-close successor](m2_h2_lifecycle_close_live.md)
 passes clean disconnect/recovery, nine-request reuse and active-upload shutdown.
+The [native output successor](m2_h2_output_live.md) passes producer reuse,
+held/ready output, a file range and early response ordering, bringing coverage
+to 40 distinct H2 IDs across checkpoints. The
+[combined acceptance contract](m2_h2_combined_contract.md) prepares all 40 IDs and
+67 persistent body records with reviewed expected states and work bounds. The
+[combined fixture](m2_h2_combined_fixture.md) preserves the shared slot/record
+storage and canonical schemas, proves formatter bounds, and compiles in Debug
+and ReleaseSafe. Combined client integration, runtime closure and the actual
+two-child run remain open.
 The [HTTP/3 source checkpoint](m2_h3_source_authentication.md)
 authenticates the cached QPACK file against the retained exact-pin bundle.
-Broader H2, HTTP/3,
+The combined H2 run and full H2 gates, HTTP/3,
 multipart transport composition, production adoption and final acceptance remain
 open. The sections below preserve design decisions and component history.
 
