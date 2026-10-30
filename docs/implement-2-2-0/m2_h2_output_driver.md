@@ -33,3 +33,7 @@ with doubles; the protocol checks use in-memory public codecs. No native fixture
 was executed in this preparation. The five output cases, an actual combined
 40-case run, exact-current returned-error runtime evidence, full quality/platform/
 fuzz/package gates and adoption remain open. Native H2 coverage remains 35 IDs.
+
+The [native-output successor](m2_h2_output_live.md) records the subsequent
+five-case Debug run and independent audit. It brings coverage to 40 IDs across
+checkpoints; the actual combined run and remaining gates stay open.

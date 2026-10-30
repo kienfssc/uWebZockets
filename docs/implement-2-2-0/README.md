@@ -112,20 +112,20 @@ peer reset with independent credit and recovery checks. The
 [application-error successor](m2_h2_application_error_live.md) passes chunk,
 progress and end failures without duplicate cancellation. The
 [lifecycle-close successor](m2_h2_lifecycle_close_live.md) passes clean disconnect,
-nine-request reuse and active-upload shutdown. Five output case IDs and the
-combined matrix remain required.
+nine-request reuse and active-upload shutdown. The output successor below adds
+the remaining five IDs; the combined matrix remains required.
 The [bounded output observer](m2_h2_output_observer.md) prepares hash-only binary
-responses and manual credit, with pure codec regression evidence; native output
-cases and independent credit accounting remain open.
+responses and manual credit, with pure codec regression evidence.
 Its [client-core successor](m2_h2_output_client_core.md) adds separate credit
-ledgers, ordered late refunds and bounded output stages with pure codec proof;
-fixture, runner, native output cases and the combined matrix remain open.
+ledgers, ordered late refunds and bounded output stages with pure codec proof.
 The [output fixture preparation](m2_h2_output_fixture.md) adds reviewed fixture
 sources, actual Debug/ReleaseSafe compilation and current function-based checks.
-The fixture remains unexecuted; native output coverage is still 35 of 40 IDs.
+That preparation checkpoint did not execute the fixture.
 The [output driver preparation](m2_h2_output_driver.md) adds reviewed schedules,
 public-codec integration checks, owned-process cleanup and an authenticated
-runtime input closure. Native output execution and the combined run remain open.
+runtime input closure. The [native output proof](m2_h2_output_live.md) then passes
+all five output cases, giving 40 proved IDs across checkpoints. The actual
+combined 40-case run and full quality/platform/adoption gates remain required.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
