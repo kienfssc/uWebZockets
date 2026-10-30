@@ -131,8 +131,11 @@ The [combined acceptance contract](m2_h2_combined_contract.md) now prepares all
 family-evidence and work-bound contracts. The
 [combined fixture preparation](m2_h2_combined_fixture.md) now adds the shared
 records/slots, canonical formatters, verified capture bounds and actual
-Debug/ReleaseSafe compilation. Combined client integration, startup proof,
-runtime closure and the actual combined run remain open.
+Debug/ReleaseSafe compilation. The
+[combined client core](m2_h2_combined_client_core.md) now adds reviewed per-case
+credit, stages, retirement and one bound public-codec path, including actual
+pure startup proof and the reviewed small-response limit fix. Full case/close/
+runner integration, runtime closure and the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.

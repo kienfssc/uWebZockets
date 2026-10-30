@@ -24,8 +24,11 @@ to 40 distinct H2 IDs across checkpoints. The
 67 persistent body records with reviewed expected states and work bounds. The
 [combined fixture](m2_h2_combined_fixture.md) preserves the shared slot/record
 storage and canonical schemas, proves formatter bounds, and compiles in Debug
-and ReleaseSafe. Combined client integration, runtime closure and the actual
-two-child run remain open.
+and ReleaseSafe. The [combined client core](m2_h2_combined_client_core.md)
+prepares reviewed credit, stage, retirement and public-codec accounting with
+actual pure startup proof. Its small-response limit fix passes scoped review;
+full case/close/runner integration, runtime closure and the actual two-child
+run remain open.
 The [HTTP/3 source checkpoint](m2_h3_source_authentication.md)
 authenticates the cached QPACK file against the retained exact-pin bundle.
 The combined H2 run and full H2 gates, HTTP/3,
