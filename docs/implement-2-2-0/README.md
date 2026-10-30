@@ -13,7 +13,7 @@ results and release actions are recorded only when actually performed.
 | --- | --- | --- | --- |
 | M0 | Freeze the 2.1.6 baseline | Complete | [Baseline](m0_baseline.md) |
 | M1 | Response streaming, static delivery, TLS payloads | TLS closure successor verified; adoption and external profiles open | [Streaming, static, TLS](m1_streaming_static_tls.md) |
-| M2 | Request streaming and incremental multipart | H1/TLS and 35 H2 case IDs proved; five H2 IDs, combined matrix, H3 and adoption remain open | [Request streaming](m2_request_streaming.md) |
+| M2 | Request streaming and incremental multipart | H1/TLS and 40 H2 case IDs proved across checkpoints; combined matrix, H3 and adoption remain open | [Request streaming](m2_request_streaming.md) |
 | M3 | Dependency provenance gates and archives | In progress | [Dependency provenance](m3_dependency_provenance.md) |
 | M4 | Live WebTransport and compliance | Delivery re-declared; activation gated | [WebTransport](m4_webtransport.md) |
 | M5 | Cluster, timer, and limiter ownership | Awaiting feature stabilization | [Structural ownership](m5_structural_ownership.md) |
@@ -126,6 +126,10 @@ public-codec integration checks, owned-process cleanup and an authenticated
 runtime input closure. The [native output proof](m2_h2_output_live.md) then passes
 all five output cases, giving 40 proved IDs across checkpoints. The actual
 combined 40-case run and full quality/platform/adoption gates remain required.
+The [combined acceptance contract](m2_h2_combined_contract.md) now prepares all
+40 IDs and 67 independent body records, with reviewed subset/default, shutdown,
+family-evidence and work-bound contracts. Fixture/client integration, formatter
+and startup proof, builds and the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
