@@ -148,7 +148,10 @@ two more reviewed cases, reaching 23, with independent credit scopes and exact
 padding/trailer order. The
 [metadata/concurrent-route schedules](m2_h2_combined_metadata_concurrency.md)
 add two more, reaching 25, with exact metadata/helper contracts, route isolation
-and retained-refusal retirement. The other 15 schedules, full case/close/runner integration,
+and retained-refusal retirement. The
+[cancellation/reset schedules](m2_h2_combined_cancel_reset.md) add three more,
+reaching 28, with policy-aware terminal completion, credit reclamation and
+sibling/recovery isolation. The other 12 schedules, full case/close/runner integration,
 runtime closure and the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
