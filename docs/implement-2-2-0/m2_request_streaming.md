@@ -33,8 +33,10 @@ The [pause/control schedules](m2_h2_combined_pause_cases.md) add four more
 reviewed cases and exact pause/resume, control and retained-record checks.
 The [admission schedules](m2_h2_combined_admission_cases.md) add nine empty,
 limited and refusal/recovery cases with exact final/reset ordering.
-The other 23 schedules, full case/close/runner integration, runtime closure and
-the actual two-child run remain open.
+The [Continue/quota schedules](m2_h2_combined_continue_quota.md) add four more
+reviewed cases and nine retained records. The other 19 schedules, full
+case/close/runner integration, runtime closure and the actual two-child run
+remain open.
 The [HTTP/3 source checkpoint](m2_h3_source_authentication.md)
 authenticates the cached QPACK file against the retained exact-pin bundle.
 The combined H2 run and full H2 gates, HTTP/3,
