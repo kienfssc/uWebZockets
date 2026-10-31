@@ -139,7 +139,9 @@ pure startup proof and the reviewed small-response limit fix. The
 first four cases, fresh caller-time checks and shared-state/final-debt proof.
 The [pause/control schedules](m2_h2_combined_pause_cases.md) add four more
 reviewed cases with exact serialized actions and retained-record checks.
-The other 32 schedules, full case/close/runner integration, runtime closure and
+The [admission schedules](m2_h2_combined_admission_cases.md) add nine empty,
+limited and refusal/recovery cases, bringing reviewed source schedules to 17.
+The other 23 schedules, full case/close/runner integration, runtime closure and
 the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
