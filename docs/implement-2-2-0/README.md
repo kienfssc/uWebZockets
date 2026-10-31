@@ -143,8 +143,10 @@ The [admission schedules](m2_h2_combined_admission_cases.md) add nine empty,
 limited and refusal/recovery cases, bringing reviewed source schedules to 17.
 The [Continue/quota schedules](m2_h2_combined_continue_quota.md) add four more
 reviewed cases, reaching 21, with exact Continue, active-barrier and recovery
-sequences. The other 19 schedules, full case/close/runner integration, runtime
-closure and the actual combined run remain open.
+sequences. The [credit/trailer schedules](m2_h2_combined_credit_cases.md) add
+two more reviewed cases, reaching 23, with independent credit scopes and exact
+padding/trailer order. The other 17 schedules, full case/close/runner integration,
+runtime closure and the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
