@@ -134,8 +134,11 @@ records/slots, canonical formatters, verified capture bounds and actual
 Debug/ReleaseSafe compilation. The
 [combined client core](m2_h2_combined_client_core.md) now adds reviewed per-case
 credit, stages, retirement and one bound public-codec path, including actual
-pure startup proof and the reviewed small-response limit fix. Full case/close/
-runner integration, runtime closure and the actual combined run remain open.
+pure startup proof and the reviewed small-response limit fix. The
+[public and large upload schedules](m2_h2_combined_public_cases.md) add the
+first four cases, fresh caller-time checks and shared-state/final-debt proof.
+The other 36 schedules, full case/close/runner integration, runtime closure and
+the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
 uWebZockets, socket or live-upload evidence.
