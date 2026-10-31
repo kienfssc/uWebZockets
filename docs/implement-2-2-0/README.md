@@ -156,7 +156,10 @@ sibling/recovery isolation. The
 more, reaching 31, with precise failing-callback diagnostics and INTERNAL_ERROR
 completion. The [producer/pressure schedules](m2_h2_combined_producer_pressure.md)
 add three more, reaching 34, with exact hash-only output, canonical grants,
-paired completion and retained binding diagnostics. The other six schedules, full case/close/runner integration,
+paired completion and retained binding diagnostics. The
+[file/early-final schedules](m2_h2_combined_file_early.md) add two more, reaching
+36, with exact range generation, retained file diagnostics and END-before-reset
+ordering. The other four schedules, full case/close/runner integration,
 runtime closure and the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
