@@ -154,7 +154,9 @@ reaching 28, with policy-aware terminal completion, credit reclamation and
 sibling/recovery isolation. The
 [application-error schedules](m2_h2_combined_application_errors.md) add three
 more, reaching 31, with precise failing-callback diagnostics and INTERNAL_ERROR
-completion. The other nine schedules, full case/close/runner integration,
+completion. The [producer/pressure schedules](m2_h2_combined_producer_pressure.md)
+add three more, reaching 34, with exact hash-only output, canonical grants,
+paired completion and retained binding diagnostics. The other six schedules, full case/close/runner integration,
 runtime closure and the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
