@@ -36,8 +36,10 @@ limited and refusal/recovery cases with exact final/reset ordering.
 The [Continue/quota schedules](m2_h2_combined_continue_quota.md) add four more
 reviewed cases and nine retained records. The
 [credit/trailer schedules](m2_h2_combined_credit_cases.md) add two more reviewed
-cases with exact padding, trailer and independent credit accounting. The other
-17 schedules, full case/close/runner integration, runtime closure and the actual
+cases with exact padding, trailer and independent credit accounting. The
+[metadata/concurrent-route schedules](m2_h2_combined_metadata_concurrency.md)
+add two more, with exact metadata/helper contracts, route isolation and retained
+refusal retirement. The other 15 schedules, full case/close/runner integration, runtime closure and the actual
 two-child run remain open.
 The [HTTP/3 source checkpoint](m2_h3_source_authentication.md)
 authenticates the cached QPACK file against the retained exact-pin bundle.

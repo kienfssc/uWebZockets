@@ -145,7 +145,10 @@ The [Continue/quota schedules](m2_h2_combined_continue_quota.md) add four more
 reviewed cases, reaching 21, with exact Continue, active-barrier and recovery
 sequences. The [credit/trailer schedules](m2_h2_combined_credit_cases.md) add
 two more reviewed cases, reaching 23, with independent credit scopes and exact
-padding/trailer order. The other 17 schedules, full case/close/runner integration,
+padding/trailer order. The
+[metadata/concurrent-route schedules](m2_h2_combined_metadata_concurrency.md)
+add two more, reaching 25, with exact metadata/helper contracts, route isolation
+and retained-refusal retirement. The other 15 schedules, full case/close/runner integration,
 runtime closure and the actual combined run remain open.
 The [independent H2 client preparation](evidence/m2_h2_client/README.md) preserves
 pinned tools and reviewed bounded helpers; its checks are pure and provide no
